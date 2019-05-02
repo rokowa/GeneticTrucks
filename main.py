@@ -57,6 +57,9 @@ def fitness_fct(sol, distances, nb_peoples) :
     risk = []
     money = []
     
+    #on crée une liste contenent les indices des communes (0 à 18)
+    non_visited = [x for x in range(len(nb_peoples))]
+    
     for j in range(len(sol)) :
         bank_idx = distances.shape[0]-1
         #on rajoutte la banque à la fin de la liste pour éviter de devoir le faire manuellement
@@ -73,15 +76,22 @@ def fitness_fct(sol, distances, nb_peoples) :
                 #on ajoute la distance de maison communale à maison communale
                 #à la dernière itération ce sera la banque nationale
                 dist[j] += distances[truck[i], truck[i+1]]
-                #on ajoute l'argent récupéré dans la commune i
-                #on s'épargne le facteur 70 centimes qui est inutile
-                money[j] += nb_peoples[truck[i]]
+                if(i in non_visited) :
+                    #on ajoute l'argent récupéré dans la commune i si elle n'a pas encore été visitée
+                    #on s'épargne le facteur 70 centimes qui est inutile
+                    money[j] += nb_peoples[truck[i]]
+                    non_visited.remove(i)
                 #on ajoute le risque qui est modélisé comme la distance TOTALE pondérée par
                 #l'argent transporté EN COURS DE TRAJET
                 risk[j] += money[j]*dist[j]
         else :
             #on ne devrait pas se retrouver ici (cas où un camion ne visite aucune commune)
             pass
+    
+    if(len(non_visited) > 0) :
+        #une des communes n'a pas été visitée.. on a donc évalué une solution non admissible
+        #on ne devrait jamais se trouver ici
+        print("Paaaaas bon")
 
     return (sum(dist), sum(risk))
 
