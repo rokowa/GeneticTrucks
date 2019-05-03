@@ -81,6 +81,9 @@ class Chromosome:
     SIZE = 21
     H = -1
     def __init__(self):
+        self.holes0 = [] 
+        self.holes1 = [] 
+        self.holes2 = [] 
         # [bank, c1, c2, ..., c19, bank]
         # c1 = 1 si la commune 1 a été visitée
         self.visited0 = [0 for i in range(self.SIZE)]  
@@ -105,6 +108,29 @@ class Chromosome:
                 self.visited1[city_idx] = 1 if value else 0 
             elif(fourgon == 2):
                 self.visited2[city_idx] = 1 if value else 0 
+
+    # cherche le premier index libre de la partie du milieu
+    # qui ne soit pas un trou
+    def find_non_free_idx(self,fourgon, inf, sup):
+        found = False
+        i = inf-1
+        if(fourgon==0):
+            while i < sup and not found:
+                found = False if (self.path0[i]==-1) else True
+                i+=1
+        elif(fourgon==1):
+            while i < sup and not found:
+                found = False if (self.path1[i]==-1) else True 
+                i+=1
+        elif(fourgon==2):
+            while i < sup and not found:
+                found = False if (self.path2[i]==-1) else True 
+                i+=1
+        #print(str(i))
+        #print('[%s]' % ', '.join(map(str, self.path2)))
+        return -1 if not found else i-1
+
+
     def find_free_idx(self,fourgon):
         found = False
         i = 0
@@ -152,44 +178,61 @@ class Chromosome:
     
     def generate_holes(self):
         count = 0
-        res = [-1 for i in range(self.SIZE)]
-        # 4 H par partie donc 12
-        while count < 12:
-            if(count < 4):
+        res = []
+        # 7 H au total:
+        # 2 dans la partie 1, 2 dans la partie 3 et 3 au milieu
+        while count < 7:
+            if(count < 2):
                 i = random.randint(0,self.SIZE//3-1)
-            elif(count < 8):
-                i = random.randint(0,2*self.SIZE//3-1)
-            elif(count < 12):
-                i = random.randint(0,self.SIZE-1)
+            elif(count < 5):
+                i = random.randint(self.SIZE//3, 2*self.SIZE//3-1)
+            elif(count < 7):
+                i = random.randint(2*self.SIZE//3, self.SIZE-1)
             print(str(i))
-            if( res[i] == -1 ):
-                res[i] = i;
+            if( i not in res ):
+                res.append(i);
                 count += 1
         # les cases avec -1 -> pas de trous
         # sinon la case contient l'index du trou
         print('[%s]' % ', '.join(map(str, res)))
         return res
+    
+    def cancel(self, index, fourgon):
+        if(fourgon == 0):
+            self.path0[index] = -1
+            self.visited0[index] = 0
+        elif(fourgon == 1):
+            self.path1[index] = -1
+            self.visited1[index] = 0
+        elif(fourgon == 2):
+            self.path2[index] = -1
+            self.visited2[index] = 0
 
-    #TODO Faire en sorte de generer un nouvel objet plutot que de modifier 
-    # self
-    def apply_holes(self):
+    def create_holes(self):
         #on introduit 4 trous par partie
-        rdm_holes0 = self.generate_holes()
-        rdm_holes1 = self.generate_holes()
-        rdm_holes2 = self.generate_holes()
-        for element in rdm_holes0:
-            if(element != -1):
-                self.path0[element] = -1
-                self.visited0[element] = 0
-        for element in rdm_holes1:
-            if(element != -1):
-                self.path1[element] = -1
-                self.visited1[element] = 0
-        for element in rdm_holes2:
-            if(element != -1):
-                self.path2[element] = -1
-                self.visited2[element] = 0
+        self.holes0 = self.generate_holes()
+        self.holes1 = self.generate_holes()
+        self.holes2 = self.generate_holes()
+        for element in self.holes0:
+            self.cancel(element, 0)
+        for element in self.holes1:
+            self.cancel(element, 1)
+        for element in self.holes2:
+            self.cancel(element, 2)
         print('[%s]' % ', '.join(map(str, self.path2)))
+
+    # déplacer les trous dans la partie centrale
+    def move_holes(self):
+        j = self.find_non_free_idx(0, self.SIZE//3, 2*self.SIZE//3 - 1)
+        for i in self.holes0:
+            self.path0[i], self.path0[j] = self.path0[j], self.path0[i]  
+        j = self.find_non_free_idx(1, self.SIZE//3, 2*self.SIZE//3 - 1)
+        for i in self.holes1:
+            self.path1[i], self.path1[j] = self.path1[j], self.path1[i]  
+        j = self.find_non_free_idx(2, self.SIZE//3, 2*self.SIZE//3 - 1)
+        for i in self.holes0:
+            self.path2[i], self.path2[j] = self.path2[j], self.path2[i]  
+
 
     #crossover
     # on doit tenter d'implémenter un croisement 
@@ -203,9 +246,9 @@ class Chromosome:
     # on import la partie centrale de A
     # B'= 3 6 | 7 1 2 4 | 8 5 9
     def cross(self, chromosome):
-        self.apply_holes()
-
-
+        child_left = copy.deep_copy(chromosome)
+        child_left.create_holes()
+        child_left.move_holes()
 
     def show(self):
         i = 0
@@ -267,8 +310,10 @@ c.add_city(Data.BXL_IDX, 2)
 c.add_city(Data.BXL_IDX, 2)
 c.add_city(Data.BXL_IDX, 2)
 c.mutate()
-c.apply_holes()
-#c.show()
+c.create_holes()
+c.create_holes()
+c.move_holes()
+c.show()
 #"""
 
 
