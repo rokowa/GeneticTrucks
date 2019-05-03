@@ -84,9 +84,14 @@ class Chromosome:
         self.visited0 = [0 for i in range(self.SIZE)]  
         self.visited1 = [0 for i in range(self.SIZE)]  
         self.visited2 = [0 for i in range(self.SIZE)]  
-        self.path0 = []
-        self.path1 = []
-        self.path2 = []
+        # ordre dans lequel les neuds sont visités
+        # les entrées vont de -1 (un trou), 0 (la banque), ... 19 
+        # si le numero 8 se trouve dans la case 2 et 
+        # que 18 se trouve dans la case 1, cela veut dire
+        # que la commune 18 a été visité avant la commune 8
+        self.path0 = [0 for i in range(-1, self.SIZE)]
+        self.path1 = [0 for i in range(self.SIZE)]
+        self.path2 = [0 for i in range(self.SIZE)]
 
     def set_visited(self, city_idx, value, fourgon):
         if(city_idx>=self.SIZE):
