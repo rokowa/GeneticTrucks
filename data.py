@@ -116,6 +116,19 @@ class Chromosome:
                 self.path2.append(city_idx)
 
     #TODO mutation
+    # on doit tenter d'implémenter une mutation 
+    # inversion comme montrée au cours:
+    # A = 3 5 | 7 1 2 4 | 8 6 9
+    # A'= 3 5 | 4 2 1 7 | 8 6 9
+    def mutate(self):
+        # les deux barres verticales
+        i = self.SIZE/3 - 1 #cad 6
+        j = 2*self.SIZE/3 - 1 #cad 13
+        for k in range(2):
+            path0[i+k], path0[j-k] = path0[j-k], path0[i+k]
+            path1[i+k], path1[j-k] = path1[j-k], path1[i+k]
+            path2[i+k], path2[j-k] = path2[j-k], path2[i+k]
+
 
     def show(self):
         i = 0
