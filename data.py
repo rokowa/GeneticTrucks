@@ -89,9 +89,9 @@ class Chromosome:
         # si le numero 8 se trouve dans la case 2 et 
         # que 18 se trouve dans la case 1, cela veut dire
         # que la commune 18 a été visité avant la commune 8
-        self.path0 = [0 for i in range(-1, self.SIZE)]
-        self.path1 = [0 for i in range(self.SIZE)]
-        self.path2 = [0 for i in range(self.SIZE)]
+        self.path0 = [-1 for i in range(self.SIZE)]
+        self.path1 = [-1 for i in range(self.SIZE)]
+        self.path2 = [-1 for i in range(self.SIZE)]
 
     def set_visited(self, city_idx, value, fourgon):
         if(city_idx>=self.SIZE):
@@ -103,17 +103,36 @@ class Chromosome:
                 self.visited1[city_idx] = 1 if value else 0 
             elif(fourgon == 2):
                 self.visited2[city_idx] = 1 if value else 0 
+    def find_free_idx(self,fourgon):
+        found = False
+        i = 0
+        if(fourgon==0):
+            while i < self.SIZE and not found:
+                found = True if (self.path0[i]==-1) else False
+                i+=1
+        elif(fourgon==1):
+            while i < self.SIZE and not found:
+                found = True if (self.path1[i]==-1) else False
+                i+=1
+        elif(fourgon==2):
+            while i < self.SIZE and not found:
+                found = True if (self.path2[i]==-1) else False
+                i+=1
+        #print(str(i))
+        #print('[%s]' % ', '.join(map(str, self.path2)))
+        return -1 if not found else i-1
 
     def add_city(self, city_idx, fourgon):
         if(city_idx>=self.SIZE):
             printf("add_city: index trop grand")
         else:
+            i = self.find_free_idx(fourgon)
             if(fourgon == 0):
-                self.path0.append(city_idx)
+                self.path0[i] = city_idx
             elif(fourgon == 1):
-                self.path1.append(city_idx)
+                self.path1[i] = city_idx
             elif(fourgon == 2):
-                self.path2.append(city_idx)
+                self.path2[i] = city_idx
 
     #TODO mutation
     # on doit tenter d'implémenter une mutation 
@@ -122,12 +141,12 @@ class Chromosome:
     # A'= 3 5 | 4 2 1 7 | 8 6 9
     def mutate(self):
         # les deux barres verticales
-        i = self.SIZE/3 - 1 #cad 6
-        j = 2*self.SIZE/3 - 1 #cad 13
+        i = self.SIZE//3 - 1 #cad 6
+        j = 2*self.SIZE//3 - 1 #cad 13
         for k in range(2):
-            path0[i+k], path0[j-k] = path0[j-k], path0[i+k]
-            path1[i+k], path1[j-k] = path1[j-k], path1[i+k]
-            path2[i+k], path2[j-k] = path2[j-k], path2[i+k]
+            self.path0[i+k], self.path0[j-k] = self.path0[j-k], self.path0[i+k]
+            self.path1[i+k], self.path1[j-k] = self.path1[j-k], self.path1[i+k]
+            self.path2[i+k], self.path2[j-k] = self.path2[j-k], self.path2[i+k]
 
 
     def show(self):
@@ -175,13 +194,21 @@ class Chromosome:
 #"""
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
-data.show()
+#data.show()
 
 c = Chromosome()
-c.show()
+#c.show()
 c.set_visited(Data.BXL_IDX, True, 2)
-c.show()
+#c.show()
 c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.add_city(Data.BXL_IDX, 2)
+c.mutate()
 c.show()
 #"""
 
