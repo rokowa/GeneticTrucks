@@ -1,3 +1,6 @@
+def printf(str):
+    print(str, end=', ')
+
 class Data:
     BN_IDX = 0 
     XL_IDX = 1
@@ -39,18 +42,19 @@ class Data:
         self.nb_peoples.append(n)
 
     def show(self):
+        print("names: ")
         for element in self.names:
-            print("names: " + element)
-        print("\n")
+            printf(element)
+        print("\nlatitudes: ")
         for element in self.latitudes:
-            print("latitudes: " + str(element))
-        print("\n")
+            printf(str(element))
+        print("\nlongitudes: ")
         for element in self.longitudes:
-            print("longitudes: " + str(element))
-        print("\n")
+            printf(str(element))
+        print("\nnb_peoples: ")
         for element in self.nb_peoples:
-            print("nb_peoples: " + str(element))
-        print("\n")
+            printf(str(element))
+        printf("\n")
 
 
 class DataLoader:
@@ -86,7 +90,7 @@ class Chromosome:
 
     def set_visited(self, city_idx, value, fourgon):
         if(city_idx>=self.SIZE):
-            print("set_visited: index trop grand")
+            printf("set_visited: index trop grand")
         else:
             if(fourgon == 0):
                 self.visited0[city_idx] = 1 if value else 0 
@@ -97,7 +101,7 @@ class Chromosome:
 
     def add_city(self, city_idx, fourgon):
         if(city_idx>=self.SIZE):
-            print("add_city: index trop grand")
+            printf("add_city: index trop grand")
         else:
             if(fourgon == 0):
                 self.path0.append(city_idx)
@@ -106,33 +110,50 @@ class Chromosome:
             elif(fourgon == 2):
                 self.path2.append(city_idx)
 
+    #TODO mutation
+
     def show(self):
         i = 0
+        printf("\nfourgon 0: ")
+        printf("\nvisited: ")
         for element in self.visited0:
-            print(str(i) + " visited0: " + str(element))
-            i+=1
-        i = 0
-        for element in self.visited1:
-            print(str(i) + " visited1: " + str(element))
-            i+=1
-        i = 0
-        for element in self.visited2:
-            print(str(i) + " visited2: " + str(element))
-            i+=1
-        i = 0
-        for element in self.path0:
-            print(str(i) + " path0: " + str(element))
-            i+=1
-        i = 0
-        for element in self.path1:
-            print(str(i) + " path1: " + str(element))
-            i+=1
-        i = 0
-        for element in self.path2:
-            print(str(i) + " path2: " + str(element))
+            printf(str(i) + " : " + str(element))
             i+=1
 
-""" Uncoment to test """
+        i = 0
+        printf("\npath: ")
+        for element in self.path0:
+            printf(str(i) + " path0: " + str(element))
+            i+=1
+
+        printf("\nfourgon 1: ")
+        printf("\nvisited: ")
+        i = 0
+        for element in self.visited1:
+            printf(str(i) + " : " + str(element))
+            i+=1
+
+        i = 0
+        printf("\npath: ")
+        for element in self.path1:
+            printf(str(i) + " : " + str(element))
+            i+=1
+
+        printf("\nfourgon 2: ")
+        printf("\nvisited: ")
+        i = 0
+        for element in self.visited2:
+            printf(str(i) + " : " + str(element))
+            i+=1
+
+        i = 0
+        printf("\npath: ")
+        for element in self.path2:
+            printf(str(i) + " : " + str(element))
+            i+=1
+
+
+""" Uncomment to test """
 #"""
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
