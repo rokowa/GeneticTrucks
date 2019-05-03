@@ -1,3 +1,4 @@
+import random
 def printf(str):
     print(str, end=', ')
 
@@ -78,6 +79,7 @@ class DataLoader:
 
 class Chromosome:
     SIZE = 21
+    H = -1
     def __init__(self):
         # [bank, c1, c2, ..., c19, bank]
         # c1 = 1 si la commune 1 a été visitée
@@ -134,7 +136,7 @@ class Chromosome:
             elif(fourgon == 2):
                 self.path2[i] = city_idx
 
-    #TODO mutation
+    #mutation
     # on doit tenter d'implémenter une mutation 
     # inversion comme montrée au cours:
     # A = 3 5 | 7 1 2 4 | 8 6 9
@@ -147,6 +149,62 @@ class Chromosome:
             self.path0[i+k], self.path0[j-k] = self.path0[j-k], self.path0[i+k]
             self.path1[i+k], self.path1[j-k] = self.path1[j-k], self.path1[i+k]
             self.path2[i+k], self.path2[j-k] = self.path2[j-k], self.path2[i+k]
+    
+    def generate_holes(self):
+        count = 0
+        res = [-1 for i in range(self.SIZE)]
+        # 4 H par partie donc 12
+        while count < 12:
+            if(count < 4):
+                i = random.randint(0,self.SIZE//3-1)
+            elif(count < 8):
+                i = random.randint(0,2*self.SIZE//3-1)
+            elif(count < 12):
+                i = random.randint(0,self.SIZE-1)
+            print(str(i))
+            if( res[i] == -1 ):
+                res[i] = i;
+                count += 1
+        # les cases avec -1 -> pas de trous
+        # sinon la case contient l'index du trou
+        print('[%s]' % ', '.join(map(str, res)))
+        return res
+
+    #TODO Faire en sorte de generer un nouvel objet plutot que de modifier 
+    # self
+    def apply_holes(self):
+        #on introduit 4 trous par partie
+        rdm_holes0 = self.generate_holes()
+        rdm_holes1 = self.generate_holes()
+        rdm_holes2 = self.generate_holes()
+        for element in rdm_holes0:
+            if(element != -1):
+                self.path0[element] = -1
+                self.visited0[element] = 0
+        for element in rdm_holes1:
+            if(element != -1):
+                self.path1[element] = -1
+                self.visited1[element] = 0
+        for element in rdm_holes2:
+            if(element != -1):
+                self.path2[element] = -1
+                self.visited2[element] = 0
+        print('[%s]' % ', '.join(map(str, self.path2)))
+
+    #crossover
+    # on doit tenter d'implémenter un croisement 
+    # comme montrée au cours:
+    # A = 3 5 | 7 1 2 4 | 8 6 9
+    # B = 1 9 | 2 3 4 6 | 8 7 5
+    # on prépare B:
+    # B = H 9 | H 3 H 6 | 8 H 5
+    # on bouge les trous
+    # B = 3 6 | H H H H | 8 5 9
+    # on import la partie centrale de A
+    # B'= 3 6 | 7 1 2 4 | 8 5 9
+    def cross(self, chromosome):
+        self.apply_holes()
+
 
 
     def show(self):
@@ -209,7 +267,8 @@ c.add_city(Data.BXL_IDX, 2)
 c.add_city(Data.BXL_IDX, 2)
 c.add_city(Data.BXL_IDX, 2)
 c.mutate()
-c.show()
+c.apply_holes()
+#c.show()
 #"""
 
 
