@@ -295,9 +295,9 @@ class Chromosome:
         """ Those are the two functions we need to minimize """
         total_distance = [0, 0, 0]
         carried_money = [0, 0, 0]
-        clearPath0 = list(filter(lambda a: a!= -1, self.path0))
-        clearPath1 = list(filter(lambda a: a!= -1, self.path1))
-        clearPath2 = list(filter(lambda a: a!= -1, self.path2))
+        clearPath0 = list(filter(lambda a: a != -1, self.path0))
+        clearPath1 = list(filter(lambda a: a != -1, self.path1))
+        clearPath2 = list(filter(lambda a: a != -1, self.path2))
         clearPath = []
         clearPath.append(clearPath0)
         clearPath.append(clearPath1)

@@ -63,75 +63,140 @@ t = t+1
 """
 
 from data import DataLoader, Data, Chromosome
-from main import fitness_fct, is_admissible
+from main import is_admissible
+import random
 import numpy as np
 
-def dominate(s1, s2) :
-    d1,r1 = fitness_fct(s1)
-    d2,r2 = fitness_fct(s2)
-    res = True
-    if(d1 > d2 or r1 > r2) :
-        res = False
-    return res
+NBR_ITERATIONS = 10
+MAX_SOLUTIONS = 30
+MUTATION_CHANCE = 0.1
 
-def fast_non_dominated_sort(pop) :
+dataloader = DataLoader("data_maison_com.txt")
+data = dataloader.data
+
+best_chromosomes = []
+
+
+def main(p, q, iteration):
+    if iteration > NBR_ITERATIONS:
+        return
+    else:
+        print("---------[Iteration {}]----------".format(iteration))
+        solutions = p.extend(q)
+        F = fast_non_dominated_sort(solutions)
+        pplus = []
+        i = 1
+        while len(pplus) + len(F[i]) <= MAX_SOLUTIONS:
+            F[i] = crowding_distance_assignment(F[i])
+            pplus.extend(F[i])
+            i += 1
+        sorted(F[i], key=lambda x: x.get_fitness_score())
+        pplus.extend(F[i][0:(MAX_SOLUTIONS - len(pplus))])
+        qplus = make_new_pop(pplus)
+
+        return main(pplus, qplus, iteration+1)
+
+
+def make_new_pop(pplus):
+    # Picks two random elements from a list, until there is 1 or 0 elements remaining
+    # Couples are stored in couple_list
+    couple_list = []
+
+    new_chromosomes = []
+    for i in len(pplus)/2:
+        couple = random.sample(pplus, 2)
+        couple_list.append(couple)
+        pplus.remove(couple[0], couple[1])
+    for couple in couple_list:
+        (a, b) = couple[0].cross(couple[1])
+        new_chromosomes.append(a)
+        new_chromosomes.append(b)
+    for chromosome in new_chromosomes:
+        if random.random() < MUTATION_CHANCE:
+            chromosome.mutate()
+    return new_chromosomes
+
+
+def rank_sort(F):
+    for i in range(F):
+        backward_index = i
+        while True:
+            if backward_index > 0:
+                if F[backward_index].get_fitness_score() > F[backward_index-1].get_fitness_score():
+                    F[backward_index], F[backward_index-1] = F[backward_index-1], F[backward_index]
+                    backward_index -= 1
+                    continue
+            break
+    return F
+
+
+def dominate(s1, s2):
+    """ Calculates if S1 dominates S2"""
+    score1 = s1.get_fitness_score()
+    score2 = s2.get_fitness_score()
+    return False if (score1[0] > score2[0] or score1[1] > score2[1] or
+                     (score1[0] == score2[0] and score1[1] == score2[1])) else True
+
+
+def fast_non_dominated_sort(pop):
+    """ Sorts the population, the best ones are the less dominated ones"""
     pop_size = len(pop)
-    
+
     ranks = [0]*pop_size
-    fronts = []
-    fronts.append([])
-    
+    fronts = [[]]
+
     dominated = [[]]*pop_size
     dom_count = [0]*pop_size
     
-    for i in range(pop_size) :
-        for j in range(pop_size) :
-            if(dominate(pop[i], pop[j])) :
+    for i in range(pop_size):
+        for j in range(pop_size):
+            if dominate(pop[i], pop[j]):
                 dominated[i].append(j)
-            elif(dominate(pop[j], pop[i])) :
+            elif dominate(pop[j], pop[i]):
                 dom_count[i] += 1
-        if(dom_count[i] == 0) :
+        if dom_count[i] == 0:
             ranks[i] = 0
             fronts[0].append(i)
     k = 0
-    while(len(fronts[k]) > 0) :
-        Q = []
-        for i in range(len(fronts[k])) :
-            for j in range(len(dominated[i])) :
+    while len(fronts[k]) > 0:
+        q = []
+        for i in range(len(fronts[k])):
+            for j in range(len(dominated[i])):
                 dom_count[j] -= 1
-                if(dom_count[j] == 0) :
+                if dom_count[j] == 0:
                     ranks[j] = k + 1
-                    Q.append(j)
+                    q.append(j)
         k += 1
-        fronts.append(Q)
+        fronts.append(q)
     
-    F = [[pop[i] for i in f] for f in fronts]
+    f = [[pop[i] for i in f] for f in fronts]
     #~ for i in range(len(fronts)) :
         #~ F.append([])
         #~ for e in f :
             #~ F[i].append(pop[e])
     
-    return F
+    return f
 
-def crowding_distance_assignment(pop_set) :
+
+def crowding_distance_assignment(pop_set):
     l = len(pop_set)
     crow_dist = [0]*l
     obj_values = np.empty(len(pop_set))
-    for s in pop_set :
+    for s in pop_set:
         obj_values.add(fitness_fct(s))
         
-    for i in range(2) :
-        sorted_idx = np.argsort(obj_values[:,i])
+    for i in range(2):
+        sorted_idx = np.argsort(obj_values[:, i])
         
-        min_value = obj_values[sorted_idx[0],i]
-        max_value = obj_values[sorted_idx[l-1],i]
+        min_value = obj_values[sorted_idx[0], i]
+        max_value = obj_values[sorted_idx[l-1], i]
         crow_dist[sorted_idx[0]] = np.inf
         crow_dist[sorted_idx[l-1]] = np.inf
-        for j in range(1,l-2) :
-            crow_dist[sorted_idx[j]] += (obj_values[sorted_idx[j-1],i] - obj_values[sorted_idx[j+1],i])/(max_value-min_value)
+        for j in range(1, l-2):
+            crow_dist[sorted_idx[j]] += (obj_values[sorted_idx[j-1], i] - obj_values[sorted_idx[j+1], i])/(max_value-min_value)
     
     return crow_dist
 
-dataloader = DataLoader("data_maison_com.txt")
-data = dataloader.data
+
+
 data.show() 
