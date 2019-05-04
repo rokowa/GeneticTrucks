@@ -155,7 +155,7 @@ class Chromosome:
         #print('[%s]' % ', '.join(map(str, self.path2)))
         return -1 if not found else i-1
 
-
+    # Cherche l'indexe du premier trou d'un chemin
     def find_free_idx(self,fourgon):
         found = False
         i = 0
@@ -175,6 +175,8 @@ class Chromosome:
         #print('[%s]' % ', '.join(map(str, self.path2)))
         return -1 if not found else i-1
 
+    # Rajoute une commune visitée à un fourgon, en cherchant
+    # d'abord un trou puis en l'ajoutant aux communes visitées 
     def add_city(self, city_idx, fourgon):
         if(city_idx>=self.SIZE):
             printf("add_city: index trop grand: "+ str(city_idx))
@@ -190,7 +192,7 @@ class Chromosome:
                 self.path2[i] = city_idx
                 self.set_visited(city_idx, True, 2)
 
-    #mutation
+    # mutation
     # on doit tenter d'implémenter une mutation 
     # inversion comme montrée au cours:
     # A = 3 5 | 7 1 2 4 | 8 6 9
@@ -285,7 +287,7 @@ class Chromosome:
                 self.set_visited(self.path2[i], True, 2)
 
 
-    #crossover
+    # crossover
     # on doit tenter d'implémenter un croisement 
     # comme montrée au cours:
     # A = 3 5 | 7 1 2 4 | 8 6 9
