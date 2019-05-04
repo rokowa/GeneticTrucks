@@ -1,7 +1,7 @@
 import main
-import data_loader
+import dataLoader
 
-names, nb_peoples, latitudes, longitudes, distances = data_loader.load_data("data_maison_com.txt")
+names, nb_peoples, latitudes, longitudes, distances = dataLoader.load_data("data_maison_com.txt")
 
 most_pop = main.most_populated(nb_peoples)
 print(most_pop)
