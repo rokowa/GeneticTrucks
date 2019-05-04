@@ -1,4 +1,5 @@
 import random
+import copy
 def printf(str):
     print(str, end=', ')
 
@@ -43,19 +44,10 @@ class Data:
         self.nb_peoples.append(n)
 
     def show(self):
-        print("names: ")
-        for element in self.names:
-            printf(element)
-        print("\nlatitudes: ")
-        for element in self.latitudes:
-            printf(str(element))
-        print("\nlongitudes: ")
-        for element in self.longitudes:
-            printf(str(element))
-        print("\nnb_peoples: ")
-        for element in self.nb_peoples:
-            printf(str(element))
-        printf("\n")
+        print('\nnames: [%s]' % ', '.join(map(str, self.names)))
+        print('\nlatitudes: [%s]' % ', '.join(map(str, self.latitudes)))
+        print('\nlongitudes: [%s]' % ', '.join(map(str, self.longitudes)))
+        print('\nnb_peoples: [%s]' % ', '.join(map(str, self.nb_peoples)))
 
 
 class DataLoader:
@@ -81,9 +73,16 @@ class Chromosome:
     SIZE = 21
     H = -1
     def __init__(self):
+        self.distance = 0
+        self.risk = 0
+
         self.holes0 = [] 
         self.holes1 = [] 
         self.holes2 = [] 
+
+        self.new_holes0 = [] 
+        self.new_holes1 = [] 
+        self.new_holes2 = [] 
         # [bank, c1, c2, ..., c19, bank]
         # c1 = 1 si la commune 1 a été visitée
         self.visited0 = [0 for i in range(self.SIZE)]  
@@ -97,6 +96,10 @@ class Chromosome:
         self.path0 = [-1 for i in range(self.SIZE)]
         self.path1 = [-1 for i in range(self.SIZE)]
         self.path2 = [-1 for i in range(self.SIZE)]
+
+    #TODO def get_risk(self):
+    #TODO def get_distance(self):
+
 
     def set_visited(self, city_idx, value, fourgon):
         if(city_idx>=self.SIZE):
@@ -157,10 +160,13 @@ class Chromosome:
             i = self.find_free_idx(fourgon)
             if(fourgon == 0):
                 self.path0[i] = city_idx
+                self.set_visited(city_idx, True, 0)
             elif(fourgon == 1):
                 self.path1[i] = city_idx
+                self.set_visited(city_idx, True, 1)
             elif(fourgon == 2):
                 self.path2[i] = city_idx
+                self.set_visited(city_idx, True, 2)
 
     #mutation
     # on doit tenter d'implémenter une mutation 
@@ -188,25 +194,25 @@ class Chromosome:
                 i = random.randint(self.SIZE//3, 2*self.SIZE//3-1)
             elif(count < 7):
                 i = random.randint(2*self.SIZE//3, self.SIZE-1)
-            print(str(i))
+            #print(str(i))
             if( i not in res ):
                 res.append(i);
                 count += 1
         # les cases avec -1 -> pas de trous
         # sinon la case contient l'index du trou
-        print('[%s]' % ', '.join(map(str, res)))
+        #print('[%s]' % ', '.join(map(str, res)))
         return res
     
     def cancel(self, index, fourgon):
         if(fourgon == 0):
             self.path0[index] = -1
-            self.visited0[index] = 0
+            self.set_visited(index, False, 0)
         elif(fourgon == 1):
             self.path1[index] = -1
-            self.visited1[index] = 0
+            self.set_visited(index, False, 1)
         elif(fourgon == 2):
             self.path2[index] = -1
-            self.visited2[index] = 0
+            self.set_visited(index, False, 2)
 
     def create_holes(self):
         #on introduit 4 trous par partie
@@ -219,19 +225,42 @@ class Chromosome:
             self.cancel(element, 1)
         for element in self.holes2:
             self.cancel(element, 2)
-        print('[%s]' % ', '.join(map(str, self.path2)))
+        #print('[%s]' % ', '.join(map(str, self.path2)))
 
     # déplacer les trous dans la partie centrale
     def move_holes(self):
-        j = self.find_non_free_idx(0, self.SIZE//3, 2*self.SIZE//3 - 1)
         for i in self.holes0:
+            j = self.find_non_free_idx(0, self.SIZE//3, 2*self.SIZE//3 - 1)
             self.path0[i], self.path0[j] = self.path0[j], self.path0[i]  
-        j = self.find_non_free_idx(1, self.SIZE//3, 2*self.SIZE//3 - 1)
+
         for i in self.holes1:
+            j = self.find_non_free_idx(1, self.SIZE//3, 2*self.SIZE//3 - 1)
             self.path1[i], self.path1[j] = self.path1[j], self.path1[i]  
-        j = self.find_non_free_idx(2, self.SIZE//3, 2*self.SIZE//3 - 1)
+
         for i in self.holes0:
+            j = self.find_non_free_idx(2, self.SIZE//3, 2*self.SIZE//3 - 1)
             self.path2[i], self.path2[j] = self.path2[j], self.path2[i]  
+
+
+    def fill_holes(self, chromosome):
+        for i in range(self.SIZE//3-1, 2*self.SIZE//3-1):
+            self.path0[i] = chromosome.path0[i]
+            if chromosome.path0[i] == -1:
+                self.set_visited(self.path0[i], False, 0)
+            else:
+                self.set_visited(self.path0[i], True, 0)
+                
+            self.path1[i] = chromosome.path1[i]
+            if chromosome.path1[i] == -1:
+                self.set_visited(self.path1[i], False, 1)
+            else:
+                self.set_visited(self.path1[i], True, 1)
+
+            self.path2[i] = chromosome.path2[i]
+            if chromosome.path2[i] == -1:
+                self.set_visited(self.path2[i], False, 2)
+            else:
+                self.set_visited(self.path2[i], True, 2)
 
 
     #crossover
@@ -245,75 +274,52 @@ class Chromosome:
     # B = 3 6 | H H H H | 8 5 9
     # on import la partie centrale de A
     # B'= 3 6 | 7 1 2 4 | 8 5 9
+    # on trouve A' de façon similaire
     def cross(self, chromosome):
-        child_left = copy.deep_copy(chromosome)
+        child_left = copy.deepcopy(chromosome)
         child_left.create_holes()
         child_left.move_holes()
+        child_left.fill_holes(self)
+
+        child_right= copy.deepcopy(self)
+        child_right.create_holes()
+        child_right.move_holes()
+        child_right.fill_holes(chromosome)
+
+        return [child_left, child_right]
 
     def show(self):
-        i = 0
-        printf("\nfourgon 0: ")
-        printf("\nvisited: ")
-        for element in self.visited0:
-            printf(str(i) + " : " + str(element))
-            i+=1
+        print("\nfourgon 0: ")
+        print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited0)))
+        print('\npath:\t [%s]' % ', '.join(map(str, self.path0)))
 
-        i = 0
-        printf("\npath: ")
-        for element in self.path0:
-            printf(str(i) + " path0: " + str(element))
-            i+=1
+        print("\nfourgon 1: ")
+        print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited1)))
+        print('\npath:\t [%s]' % ', '.join(map(str, self.path1)))
 
-        printf("\nfourgon 1: ")
-        printf("\nvisited: ")
-        i = 0
-        for element in self.visited1:
-            printf(str(i) + " : " + str(element))
-            i+=1
-
-        i = 0
-        printf("\npath: ")
-        for element in self.path1:
-            printf(str(i) + " : " + str(element))
-            i+=1
-
-        printf("\nfourgon 2: ")
-        printf("\nvisited: ")
-        i = 0
-        for element in self.visited2:
-            printf(str(i) + " : " + str(element))
-            i+=1
-
-        i = 0
-        printf("\npath: ")
-        for element in self.path2:
-            printf(str(i) + " : " + str(element))
-            i+=1
+        print("\nfourgon 2: ")
+        print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited2)))
+        print('\npath:\t [%s]' % ', '.join(map(str, self.path2)))
 
 
 """ Uncomment to test """
 #"""
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
-#data.show()
+data.show()
 
 c = Chromosome()
-#c.show()
-c.set_visited(Data.BXL_IDX, True, 2)
-#c.show()
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.add_city(Data.BXL_IDX, 2)
-c.mutate()
-c.create_holes()
-c.create_holes()
-c.move_holes()
-c.show()
+d = Chromosome()
+
+for i in range(10):
+    c.add_city(i, 2)
+
+for i in range(10,21):
+    d.add_city(i, 2)
+
+a, b = c.cross(d)
+a.show()
+b.show()
 #"""
 
 
