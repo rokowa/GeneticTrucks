@@ -1,5 +1,7 @@
 import random
 import copy
+import numpy
+
 def printf(str):
     print(str, end=', ')
 
@@ -42,6 +44,16 @@ class Data:
 
     def add_nb_people(self, n):
         self.nb_peoples.append(n)
+
+    def get_distance(self, c1, c2):
+        """ Calculates the distance between C1 and C2.
+            C1 and C2 are the indexes """
+        R_earth = 6378137
+        lat1 = self.latitudes[c1]*np.pi/180
+        lat2 = self.latitudes[c2]*np.pi/180
+        dlong = np.abs((self.longitudes[c2]-self.longitudes[c1])*np.pi/180)
+        d = R_earth*np_arccos(np.sin(lat1)*np.sin(lat2)+np.cos(lat1)*np.cos(lat2)*np.cos(dlong))
+        return d
 
     def show(self):
         print('\nnames: [%s]' % ', '.join(map(str, self.names)))
@@ -264,6 +276,8 @@ class Chromosome:
             else:
                 self.set_visited(self.path2[i], True, 2)
 
+    def fitness_fct(self):
+        d
 
     # crossover
     # on doit tenter d'implémenter un croisement 
