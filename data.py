@@ -1,6 +1,6 @@
 import random
 import copy
-import numpy
+import numpy as np
 
 def printf(str):
     print(str, end=', ')
@@ -27,6 +27,8 @@ class Data:
     FOREST_IDX = 18 
     WB_IDX = 19 
 
+    MONEY_PER_HABITANT = 0.7
+
     def __init__(self):
         self.names = [] 
         self.latitudes = [] 
@@ -48,11 +50,13 @@ class Data:
     def get_distance(self, c1, c2):
         """ Calculates the distance between C1 and C2.
             C1 and C2 are the indexes """
+        if (c1 == -1 or c2 == -1):
+            return 0
         R_earth = 6378137
         lat1 = self.latitudes[c1]*np.pi/180
         lat2 = self.latitudes[c2]*np.pi/180
         dlong = np.abs((self.longitudes[c2]-self.longitudes[c1])*np.pi/180)
-        d = R_earth*np_arccos(np.sin(lat1)*np.sin(lat2)+np.cos(lat1)*np.cos(lat2)*np.cos(dlong))
+        d = R_earth*np.arccos(np.sin(lat1)*np.sin(lat2)+np.cos(lat1)*np.cos(lat2)*np.cos(dlong))
         return d
 
     def show(self):
@@ -276,8 +280,35 @@ class Chromosome:
             else:
                 self.set_visited(self.path2[i], True, 2)
 
-    def fitness_fct(self):
-        d
+    def get_fitness_score(self, data):
+        """ @param data: The data object we need to calculate stuff"""
+        """ Those are the two functions we need to minimize """
+        total_distance = [0, 0, 0]
+        carried_money = [0, 0, 0]
+        # Last element of the path is not bypassed but
+        # we don't care as it should always be the bank
+        for i in range(len(self.path0) - 1):
+            carried_money[0] += data.nb_peoples[self.path0[i]]
+            if (self.path0[i] == -1 or self.path0[i+1] == -1):
+                break
+            total_distance[0] += data.get_distance(
+                self.path0[i], self.path0[i+1])
+
+        for i in range(len(self.path1) - 1):
+            carried_money[1] += data.nb_peoples[self.path1[i]]
+            if (self.path1[i] == -1 or self.path1[i+1] == -1):
+                break
+            total_distance[1] += data.get_distance(
+                self.path1[i], self.path1[i+1])
+
+        for i in range(len(self.path2) - 1):
+            carried_money[2] += data.nb_peoples[self.path2[i]]
+            if (self.path2[i] == -1 or self.path2[i+1] == -1):
+                break
+            total_distance[2] += data.get_distance(
+                self.path2[i], self.path2[i+1])
+        risk = (carried_money[0]*total_distance[0] + carried_money[1]*total_distance[1] + carried_money[2]*total_distance[2])*data.MONEY_PER_HABITANT
+        return sum(total_distance), risk
 
     # crossover
     # on doit tenter d'implémenter un croisement 
@@ -319,10 +350,11 @@ class Chromosome:
 
 
 """ Uncomment to test """
-"""
+#"""
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
-data.show()
+
+#data.show()
 
 c = Chromosome()
 d = Chromosome()
@@ -330,10 +362,15 @@ d = Chromosome()
 for i in range(10):
     c.add_city(i, 2)
 
-for i in range(10,21):
+for i in range(10,20):
     d.add_city(i, 2)
 
-a, b = c.cross(d)
-a.show()
-b.show()
-"""
+#a, b = c.cross(d)
+
+c.show()
+print("C chromosome score: {}".format(c.get_fitness_score(data)))
+
+d.show()
+print("D chromosome score: {}".format(d.get_fitness_score(data)))
+
+#"""
