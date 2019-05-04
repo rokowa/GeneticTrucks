@@ -62,8 +62,9 @@ Q_t+1 = make_new_pop(P_t+1)                             "usual" selection, cross
 t = t+1
 """
 
+from data import DataLoader, Data, Chromosome
+from main import fitness_fct, is_admissible
 import numpy as np
-import main.fitness_fct
 
 def dominate(s1, s2) :
     d1,r1 = fitness_fct(s1)
@@ -130,3 +131,7 @@ def crowding_distance_assignment(pop_set) :
             crow_dist[sorted_idx[j]] += (obj_values[sorted_idx[j-1],i] - obj_values[sorted_idx[j+1],i])/(max_value-min_value)
     
     return crow_dist
+
+dataloader = DataLoader("data_maison_com.txt")
+data = dataloader.data
+data.show() 

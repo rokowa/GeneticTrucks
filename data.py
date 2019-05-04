@@ -305,7 +305,7 @@ class Chromosome:
 
 
 """ Uncomment to test """
-#"""
+"""
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
 data.show()
@@ -322,6 +322,4 @@ for i in range(10,21):
 a, b = c.cross(d)
 a.show()
 b.show()
-#"""
-
-
+"""
