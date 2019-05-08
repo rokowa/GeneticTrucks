@@ -123,9 +123,6 @@ class Chromosome:
         self.path1 = [-1 for i in range(self.SIZE)]
         self.path2 = [-1 for i in range(self.SIZE)]
 
-    #TODO def get_risk(self):
-    #TODO def get_distance(self):
-
 
     def set_visited(self, city_idx, value, fourgon):
         if(city_idx>=self.SIZE):
@@ -351,8 +348,73 @@ class Chromosome:
         print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited2)))
         print('\npath:\t [%s]' % ', '.join(map(str, self.path2)))
 
+class Population:
+    INITIAL_SIZE = 100
+    def __init__(self):
+        self.chromosomes = []
+        #s'initialise selon l'algo NSGA-II
+        for i in range(100):
+            c = Chromosome()
+            # le point de départ des fourgons c'est la banque 
+            c.add_city(Data.BN_IDX, 0) 
+            c.add_city(Data.BN_IDX, 1) 
+            c.add_city(Data.BN_IDX, 2) 
+            # on remplit aléatoirement le reste
+            for i in range(1,Chromosome.SIZE):
+                # 3 fourgons
+                for j in range(3):
+                    #on ajoute une ville au fourgon j
+                    rdm_city = random.randint(-1, Chromosome.SIZE-1)
+                    c.add_city(rdm_city, j) 
+            self.chromosomes.append(c)
+    #TODO
+    """ from stackoverflow:
+    2) Chromosomes are sorted and put into fronts based on 
+    Pareto Non dominated sets. Within a Pareto front, 
+    the chromosomes are ranked based on euclidean between 
+    solutions or I-dist (term used in NSGA-II) . 
+    Generally, solutions which are far away (not crowded) 
+    from other solutions are given a higher preference while selection. 
+    This is done in order to make a diverse solution n set and avoid 
+    a crowded solution set.
+
+    3)The best N (population) chromosomes are picked from the current 
+    population and put into a mating pool
+    
+    4)In the mating pool, tournament selection, cross over and mating is done.
+    
+    5)The mating pool and current population is combined. 
+    The resulting set is sorted, and the best N chromosomes make 
+    it into the new population.
+    
+    6)Go to step 2, unless maximum number of generations have been reached.
+    
+    7)The solution set is the highest ranked Pareto non dominated 
+    set from the latest population.
+    
+    supplément:
+    About the difference between steady-state GA and generational GA: 
+        In generational replacement you create a whole new population 
+        of the same size as the old one using only the genes in 
+        the old population and then replace it as a whole. 
+    In steady-state replacement you create just one new individual which 
+    then replaces just one individual in the population. Steady-state 
+    GAs usually converge faster, but they're less likely to find 
+    the good local optima, because they do not explore 
+    the fitness landscape as much as when using generational replacement. 
+    It depends on the problem of course and sometimes you can choose 
+    how much of the old generation you want to replace which 
+    allows you to have some arbitrary scale between these two.
+    """
+
+
+
+
+
+
 
 """ Uncomment to test """
+
 """
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
