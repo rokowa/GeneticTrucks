@@ -290,8 +290,7 @@ class Chromosome:
             else:
                 self.set_visited(self.path2[i], True, 2)
 
-    def get_fitness_score(self, data):
-        """ @param data: The data object we need to calculate stuff"""
+    def get_fitness_score(self):
         """ Those are the two functions we need to minimize """
         total_distance = [0, 0, 0]
         carried_money = [0, 0, 0]
@@ -305,13 +304,13 @@ class Chromosome:
         for index, j in enumerate(clearPath):
             for i in range(len(j)):
                 # Si on arrive au bout de la liste
-                carried_money[index] += data.nb_peoples[j[i]]
+                carried_money[index] += self.data.nb_peoples[j[i]]
                 if i == len(j)-1:
                     # On ajoute la distance entre la denière commune et la banque
-                    total_distance[index] += data.distances[j[i]][0]
+                    total_distance[index] += self.data.distances[j[i]][0]
                     break
-                total_distance[index] += data.distances[j[i]][j[i+1]]
-        risk = (carried_money[0]*total_distance[0] + carried_money[1]*total_distance[1] + carried_money[2]*total_distance[2])*data.MONEY_PER_HABITANT
+                total_distance[index] += self.data.distances[j[i]][j[i+1]]
+        risk = (carried_money[0]*total_distance[0] + carried_money[1]*total_distance[1] + carried_money[2]*total_distance[2])*self.data.MONEY_PER_HABITANT
         return sum(total_distance), risk
 
     # crossover
@@ -354,7 +353,7 @@ class Chromosome:
 
 
 """ Uncomment to test """
-#"""
+"""
 dataLoader = DataLoader("data_maison_com.txt")
 data = dataLoader.data
 data.init_distances()
@@ -383,4 +382,4 @@ print("A chromosome score: {}".format(a.get_fitness_score(data)))
 b.show()
 print("B chromosome score: {}".format(b.get_fitness_score(data)))
 
-#"""
+"""

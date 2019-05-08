@@ -63,7 +63,6 @@ t = t+1
 """
 
 from data import DataLoader, Data, Chromosome
-from main import is_admissible
 import random
 import numpy as np
 
@@ -73,7 +72,7 @@ MUTATION_CHANCE = 0.1
 
 dataloader = DataLoader("data_maison_com.txt")
 data = dataloader.data
-
+data.init_distances()
 best_chromosomes = []
 
 
@@ -82,7 +81,7 @@ def main(p, q, iteration):
         return
     else:
         print("---------[Iteration {}]----------".format(iteration))
-        solutions = p.extend(q)
+        solutions = p + q
         F = fast_non_dominated_sort(solutions)
         pplus = []
         i = 1
@@ -140,8 +139,6 @@ def dominate(s1, s2):
 
 def fast_non_dominated_sort(pop):
     """ Sorts the population, the best ones are the less dominated ones"""
-    pop_size = len(pop)
-
     ranks = [0]*pop_size
     fronts = [[]]
 
@@ -160,8 +157,8 @@ def fast_non_dominated_sort(pop):
     k = 0
     while len(fronts[k]) > 0:
         q = []
-        for i in range(len(fronts[k])):
-            for j in range(len(dominated[i])):
+        for i in fronts[k]:
+            for j in range(len(dominated)):
                 dom_count[j] -= 1
                 if dom_count[j] == 0:
                     ranks[j] = k + 1
@@ -170,11 +167,6 @@ def fast_non_dominated_sort(pop):
         fronts.append(q)
     
     f = [[pop[i] for i in f] for f in fronts]
-    #~ for i in range(len(fronts)) :
-        #~ F.append([])
-        #~ for e in f :
-            #~ F[i].append(pop[e])
-    
     return f
 
 
@@ -182,8 +174,9 @@ def crowding_distance_assignment(pop_set):
     l = len(pop_set)
     crow_dist = [0]*l
     obj_values = np.empty(len(pop_set))
+
     for s in pop_set:
-        obj_values.add(fitness_fct(s))
+        obj_values.add(s.get_fitness_score)
         
     for i in range(2):
         sorted_idx = np.argsort(obj_values[:, i])
@@ -198,5 +191,25 @@ def crowding_distance_assignment(pop_set):
     return crow_dist
 
 
+def initial_data_creator(nbrpopulation):
+    initial_pop = []
+    cities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13, 14, 15, 16, 17, 18, 19, 20]
+    sets = int(len(cities) / nbrpopulation)
 
-data.show() 
+    for i in range(nbrpopulation):
+        chromo = Chromosome(data)
+        t1 = [cities.pop(random.randint(0, len(cities)-1)) for _ in range(sets)]
+        for j in t1:
+            chromo.add_city(j, 0)
+        initial_pop.append(chromo)
+
+    last_chromo = Chromosome(data)
+    # Only remaining cities
+    for u in cities:
+        last_chromo.add_city(u)
+    initial_pop.append(last_chromo)
+    return initial_pop
+
+
+initial_population = initial_data_creator(4)
+main(initial_population, [], 1)
