@@ -67,9 +67,11 @@ import matplotlib.pyplot as plt
 import random
 import numpy as np
 
+# Parameters of the algorithm
 NBR_ITERATIONS = 30
 MAX_SOLUTIONS = 20
 MUTATION_CHANCE = 0.2
+INITIAL_POP = 20
 
 dataloader = DataLoader("data_maison_com.txt")
 data = dataloader.data
@@ -241,7 +243,7 @@ def initial_data_creator(nbrpopulation):
     return initial_pop
 
 
-initial_population = initial_data_creator(20)
+initial_population = initial_data_creator(INITIAL_POP)
 print(initial_population)
 
 final_solution = main(initial_population, [], 1)
