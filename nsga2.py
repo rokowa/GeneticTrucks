@@ -63,11 +63,12 @@ t = t+1
 """
 
 from data import DataLoader, Data, Chromosome
+import matplotlib.pyplot as plt
 import random
 import numpy as np
 
-NBR_ITERATIONS = 10
-MAX_SOLUTIONS = 30
+NBR_ITERATIONS = 40
+MAX_SOLUTIONS = 100
 MUTATION_CHANCE = 0.1
 
 dataloader = DataLoader("data_maison_com.txt")
@@ -247,3 +248,15 @@ def initial_data_creator(nbrpopulation):
 initial_population = initial_data_creator(4)
 final_solution = main(initial_population, [], 1)
 print(final_solution)
+
+score_1_list = []
+score_2_list = []
+
+for chromosome in final_solution:
+    score_1_list.append(chromosome.get_fitness_score()[0])
+    print(chromosome.get_fitness_score()[0])
+    score_2_list.append(chromosome.get_fitness_score()[1])
+    print(chromosome.get_fitness_score()[1])
+
+plt.scatter(score_1_list, score_2_list)
+plt.show()
