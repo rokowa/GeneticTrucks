@@ -67,23 +67,25 @@ import matplotlib.pyplot as plt
 import random
 import numpy as np
 
-NBR_ITERATIONS = 40
-MAX_SOLUTIONS = 100
-MUTATION_CHANCE = 0.1
+NBR_ITERATIONS = 30
+MAX_SOLUTIONS = 20
+MUTATION_CHANCE = 0.2
 
 dataloader = DataLoader("data_maison_com.txt")
 data = dataloader.data
 data.init_distances()
 best_chromosomes = []
 final_solution = []
+iterations_solutions = []
 
 
 def main(p, q, iteration):
+    solutions = p + q
+    iterations_solutions.append(solutions)
     if iteration > NBR_ITERATIONS:
         return p + q
     else:
         print("---------[Iteration {}]----------".format(iteration))
-        solutions = p + q
         F = fast_non_dominated_sort(solutions)
         pplus = []
         i = 0
@@ -196,7 +198,7 @@ def fast_non_dominated_sort(pop):
 
 
 def crowding_distance_assignment(pop_set):
-    """ Chrowding distance calculation, the pop_set is only a front of the total population
+    """ Crowding distance calculation, the pop_set is only a front of the total population
         @:param a population set (a single front of the population)
         @:return returns the given front of chromosomes sorted by the crowding distance of each chromosome"""
     solution_nmbr = len(pop_set)
@@ -227,36 +229,33 @@ def crowding_distance_assignment(pop_set):
 
 def initial_data_creator(nbrpopulation):
     initial_pop = []
-    cities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13, 14, 15, 16, 17, 18, 19, 20]
-    sets = int(len(cities) / nbrpopulation)
+    cities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
     for i in range(nbrpopulation):
+        temp_cities = cities
+        random.shuffle(temp_cities)
         chromo = Chromosome(data)
-        t1 = [cities.pop(random.randint(0, len(cities)-1)) for _ in range(sets)]
-        for j in t1:
-            chromo.add_city(j, 0)
+        for j in temp_cities:
+            chromo.add_city(j, random.randint(0, random.randint(0, 2)))
         initial_pop.append(chromo)
-
-    last_chromo = Chromosome(data)
-    # Only remaining cities
-    for u in cities:
-        last_chromo.add_city(u)
-    initial_pop.append(last_chromo)
     return initial_pop
 
 
-initial_population = initial_data_creator(4)
+initial_population = initial_data_creator(20)
+print(initial_population)
+
 final_solution = main(initial_population, [], 1)
-print(final_solution)
 
 score_1_list = []
 score_2_list = []
 
 for chromosome in final_solution:
     score_1_list.append(chromosome.get_fitness_score()[0])
-    print(chromosome.get_fitness_score()[0])
     score_2_list.append(chromosome.get_fitness_score()[1])
+    print(chromosome.get_fitness_score()[0])
     print(chromosome.get_fitness_score()[1])
 
-plt.scatter(score_1_list, score_2_list)
+
+fig = plt.scatter(score_1_list, score_2_list)
 plt.show()
+
