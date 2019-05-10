@@ -69,9 +69,12 @@ import numpy as np
 
 # Parameters of the algorithm
 INITIAL_POP = 20
-MAX_SOLUTIONS = 50
-NBR_ITERATIONS = 50
-MUTATION_CHANCE = 0.1
+MAX_SOLUTIONS = 100
+NBR_ITERATIONS = 25
+MUTATION_CHANCE = 0.15
+
+X_SCALE_QUOTA = 1.0
+Y_SCALE_QUOTA = 1.0
 
 dataloader = DataLoader("data_maison_com.txt")
 data = dataloader.data
@@ -132,20 +135,10 @@ def make_new_pop(pplus):
     for chromosome in new_chromosomes:
         if random.random() < MUTATION_CHANCE:
             chromosome.mutate()
+        chromosome.init_fitness_score()
+        if not chromosome.is_valid():
+            new_chromosomes.remove(chromosome)
     return new_chromosomes
-
-
-def rank_sort(F):
-    for i in range(F):
-        backward_index = i
-        while True:
-            if backward_index > 0:
-                if F[backward_index].get_fitness_score() > F[backward_index-1].get_fitness_score():
-                    F[backward_index], F[backward_index-1] = F[backward_index-1], F[backward_index]
-                    backward_index -= 1
-                    continue
-            break
-    return F
 
 
 def dominate(s1, s2):
@@ -235,19 +228,20 @@ def initial_data_creator(nbrpopulation):
     initial_pop = []
     cities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
-    for i in range(nbrpopulation):
+    while len(initial_pop) < nbrpopulation:
         # We do a copy so we don't change the cities array
         temp_cities = cities.copy()
         random.shuffle(temp_cities)
         chromo = Chromosome(data)
         for j in temp_cities:
             chromo.add_city(j, random.randint(0, random.randint(0, 2)))
-        initial_pop.append(chromo)
+        chromo.init_fitness_score()
+        if chromo.is_valid():
+            initial_pop.append(chromo)
     return initial_pop
 
 
 initial_population = initial_data_creator(INITIAL_POP)
-print(initial_population)
 
 final_solution = main(initial_population, [], 1)
 
@@ -257,6 +251,13 @@ score_2_list = []
 for chromosome in final_solution:
     score_1_list.append(chromosome.get_fitness_score()[0])
     score_2_list.append(chromosome.get_fitness_score()[1])
+
+
+for i in range(len(score_1_list)):
+    score_1_list[i] = score_1_list[i] * X_SCALE_QUOTA
+
+for j in range(len(score_2_list)):
+    score_2_list[j] = score_2_list[j] * Y_SCALE_QUOTA
 
 
 plt.style.use("ggplot")

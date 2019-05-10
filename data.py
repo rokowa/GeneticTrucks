@@ -98,9 +98,14 @@ class DataLoader:
 class Chromosome:
     SIZE = 20
     H = -1
+
     def __init__(self, data):
         self.data = data
         self.risk = 0
+
+        self.total_distance = [0, 0, 0]
+        self.carried_money = [0, 0, 0]
+        self.total_risk = [0, 0, 0]
 
         self.holes0 = [] 
         self.holes1 = [] 
@@ -287,10 +292,11 @@ class Chromosome:
             else:
                 self.set_visited(self.path2[i], True, 2)
 
-    def get_fitness_score(self):
+    def init_fitness_score(self):
         """ Those are the two functions we need to minimize """
-        total_distance = [0, 0, 0]
-        carried_money = [0, 0, 0]
+        self.total_distance = [0, 0, 0]
+        self.carried_money = [0, 0, 0]
+        self.total_risk = [0, 0, 0]
         clearPath0 = list(filter(lambda a: a != -1, self.path0))
         clearPath1 = list(filter(lambda a: a != -1, self.path1))
         clearPath2 = list(filter(lambda a: a != -1, self.path2))
@@ -299,16 +305,44 @@ class Chromosome:
         clearPath.append(clearPath1)
         clearPath.append(clearPath2)
         for index, j in enumerate(clearPath):
+            # We add the distance between the bank and the first city
+            if len(j) > 0:
+                self.total_distance[index] += self.data.distances[0][j[0]]
             for i in range(len(j)):
                 # Si on arrive au bout de la liste
-                carried_money[index] += self.data.nb_peoples[j[i]]
+                self.carried_money[index] += self.data.nb_peoples[j[i]]*0.7
                 if i == len(j)-1:
                     # On ajoute la distance entre la denière commune et la banque
-                    total_distance[index] += self.data.distances[j[i]][0]
+                    self.total_distance[index] += self.data.distances[j[i]][0]
+                    self.total_risk[index] += self.data.distances[j[i]][0]*self.carried_money[index]
                     break
-                total_distance[index] += self.data.distances[j[i]][j[i+1]]
-        risk = (carried_money[0]*total_distance[0] + carried_money[1]*total_distance[1] + carried_money[2]*total_distance[2])*self.data.MONEY_PER_HABITANT
-        return sum(total_distance), risk
+                self.total_distance[index] += self.data.distances[j[i]][j[i+1]]
+                self.total_risk[index] += self.data.distances[j[i]][j[i+1]]*self.carried_money[index]
+
+    def get_fitness_score(self):
+        return sum(self.total_distance), sum(self.total_risk)
+
+    def is_valid(self):
+        """
+        Checks if this chromosome respects the constraints
+        :return:
+        """
+        total_money = sum(self.data.nb_peoples) * 0.7
+        for truck in self.carried_money:
+            # If one of the trucks containts more than 50% of the total money
+            if truck > total_money * 0.5:
+                return False
+        # If one truck goes on the 3 most populated cities
+        if 0 in self.path0 and 3 in self.path0 and 12 in self.path0:
+            return False
+        if 0 in self.path1 and 3 in self.path1 and 12 in self.path1:
+            return False
+        if 0 in self.path2 and 3 in self.path2 and 12 in self.path2:
+            return False
+        # If everything is good
+        return True
+
+
 
     # crossover
     # on doit tenter d'implémenter un croisement 
@@ -350,9 +384,10 @@ class Chromosome:
 
 class Population:
     INITIAL_SIZE = 100
+
     def __init__(self):
         self.chromosomes = []
-        #s'initialise selon l'algo NSGA-II
+        # s'initialise selon l'algo NSGA-II
         for i in range(100):
             c = Chromosome()
             # le point de départ des fourgons c'est la banque 
