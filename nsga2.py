@@ -68,7 +68,7 @@ import random
 import numpy as np
 
 # Parameters of the algorithm
-INITIAL_POP = 20
+INITIAL_POP = 100
 MAX_SOLUTIONS = 100
 NBR_ITERATIONS = 25
 MUTATION_CHANCE = 0.15
@@ -266,3 +266,19 @@ plt.xlabel("Distance")
 plt.ylabel("Risk")
 plt.show()
 
+"""
+TODO:
+
+1) Plotter en fonction des fronts, couleurs
+2) Définir une population initiale fixe pour comparer plus facilement nos résultats
+3) 
+
+Brainstorming pour le rapport:
+1) Citer les avantages du NSGA2 du papier orinal
+2) Expliquer pourquoi un algorithme générique
+3) Modélisation de nos data structures (expliquer croisement, mutation)
+4) Faut-il expliquer l'algorithme en lui même ?
+5) Jouer avec les paramètres
+6) Comment applique les contraintes du problème? Faire les deux
+7) 
+"""

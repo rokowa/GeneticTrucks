@@ -3,8 +3,10 @@ import numpy as np
 import copy
 import numpy as np
 
+
 def printf(str):
     print(str, end=', ')
+
 
 class Data:
     BN_IDX = 0 
