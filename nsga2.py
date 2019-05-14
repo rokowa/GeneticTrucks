@@ -66,9 +66,10 @@ from data import DataLoader, Data, Chromosome
 import matplotlib.pyplot as plt
 import random
 import numpy as np
+import matplotlib.cm as cm
 
 # Parameters of the algorithm
-INITIAL_POP = 100
+INITIAL_POP = 50
 MAX_SOLUTIONS = 100
 NBR_ITERATIONS = 25
 MUTATION_CHANCE = 0.15
@@ -245,23 +246,35 @@ initial_population = initial_data_creator(INITIAL_POP)
 
 final_solution = main(initial_population, [], 1)
 
-score_1_list = []
-score_2_list = []
-
-for chromosome in final_solution:
-    score_1_list.append(chromosome.get_fitness_score()[0])
-    score_2_list.append(chromosome.get_fitness_score()[1])
+# We sort our final solutions
+final_solution_fronts = fast_non_dominated_sort(final_solution)
 
 
+colors = cm.rainbow(np.linspace(0, 1, len(final_solution_fronts)))
+
+# Sets the style of our plot
+plt.style.use("ggplot")
+
+# Puts the fronts with a different color in our graph
+for front, c in zip(final_solution_fronts, colors):
+    score_1_list = []
+    score_2_list = []
+    for chromosome in front:
+        score_1_list.append(chromosome.get_fitness_score()[0])
+        score_2_list.append(chromosome.get_fitness_score()[1])
+    plt.plot(score_1_list, score_2_list, '-o', color=c)
+
+"""
 for i in range(len(score_1_list)):
     score_1_list[i] = score_1_list[i] * X_SCALE_QUOTA
 
 for j in range(len(score_2_list)):
     score_2_list[j] = score_2_list[j] * Y_SCALE_QUOTA
+"""
 
+# fig = plt.scatter(score_1_list, score_2_list, s=8)
 
-plt.style.use("ggplot")
-fig = plt.scatter(score_1_list, score_2_list, s=8)
+# Axes labels
 plt.xlabel("Distance")
 plt.ylabel("Risk")
 plt.show()
@@ -269,11 +282,10 @@ plt.show()
 """
 TODO:
 
-1) Plotter en fonction des fronts, couleurs
-2) Définir une population initiale fixe pour comparer plus facilement nos résultats
-3) 
+1) Plotter les solutions finales avec des couleurs différentes en fonction des fronts
+2) Définir une population initiale fixe pour comparer plus facilement nos changement de paramètres initiaux
 
-Brainstorming pour le rapport:
+Brainstorming pour le rapport (qu'es-ce qu'on dire sur le rapport ?)
 1) Citer les avantages du NSGA2 du papier orinal
 2) Expliquer pourquoi un algorithme générique
 3) Modélisation de nos data structures (expliquer croisement, mutation)
