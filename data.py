@@ -78,7 +78,7 @@ class Data:
 
 
 class DataLoader:
-    def __init__(self, filename) :
+    def __init__(self, filename):
         self.data = Data()
         file_o = open(filename, 'r')
         for l in file_o.readlines() :
@@ -96,6 +96,25 @@ class DataLoader:
         file_o.close()
         self.data.init_distances()
 
+    def get_initial_pop(self, filename):
+        population = []
+        file_o = open(filename, 'r')
+        temp_chromosome = Chromosome(self.data)
+        truck_index = 0
+        for index, l in enumerate(file_o.readlines()):
+            if l == "----------------------------------------------------\n":
+                if index != 0:
+                    population.append(temp_chromosome)
+                    temp_chromosome = Chromosome(self.data)
+                    truck_index = 0
+                continue
+            l = l.replace('\n', '')
+            cities = l.split(', ')
+            for city in cities:
+                print(city)
+                temp_chromosome.add_city(int(city), truck_index)
+            truck_index += 1
+        return population
 
 class Chromosome:
     SIZE = 20

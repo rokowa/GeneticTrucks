@@ -100,7 +100,7 @@ def main(p, q, iteration):
             F[i] = crowding_distance_assignment(F[i])
             pplus += F[i]
             i += 1
-        sorted(F[i], key=lambda x: x.get_fitness_score())
+        F[i] = sorted(F[i], key=lambda x: x.get_fitness_score())
         pplus += F[i][0:(MAX_SOLUTIONS - len(pplus))]
         qplus = make_new_pop(pplus)
         return main(pplus, qplus, iteration+1)
@@ -202,7 +202,7 @@ def crowding_distance_assignment(pop_set):
     solution_nmbr = len(pop_set)
     distance = [0.0] * len(pop_set)  # List of float distance, the chromosomes are identified by index in this case
     for m in range(2):  # We iterate over the two chromosome fitness function values
-        sorted(pop_set, key=lambda x: x.get_fitness_score()[m])  # we sort our pop_set by the m objective value
+        pop_set = sorted(pop_set, key=lambda x: x.get_fitness_score()[m])  # we sort our pop_set by the m objective value
         max_value = pop_set[0].get_fitness_score()[m]  # Max fitness score of the current m objective
         min_value = pop_set[-1].get_fitness_score()[m]  # Min fitness score of the current m objective
         if (max_value == 0 and min_value == 0) or (max_value == min_value):  # Workaround, the max_value and the min_
@@ -219,7 +219,7 @@ def crowding_distance_assignment(pop_set):
     joined_list = [[None, 0.0]]*len(pop_set)
     for i in range(len(pop_set)):
         joined_list[i] = [pop_set[i], distance[i]]
-    sorted(joined_list, key=lambda x: x[1])
+    joined_list = sorted(joined_list, key=lambda x: x[1])
     # I know there a better way of doing that but i'm kinda by zip rn
     final_list = [item[0] for item in joined_list]
     return final_list
@@ -239,10 +239,19 @@ def initial_data_creator(nbrpopulation):
         chromo.init_fitness_score()
         if chromo.is_valid():
             initial_pop.append(chromo)
+    for chromo in initial_pop:
+        print("----------------------------------------------------")
+        print(chromo.path0)
+        print(chromo.path1)
+        print(chromo.path2)
     return initial_pop
 
 
-initial_population = initial_data_creator(INITIAL_POP)
+# initial_population = initial_data_creator(INITIAL_POP)
+initial_population = dataloader.get_initial_pop("initial_pop.txt")
+for chromosome in initial_population:
+    chromosome.show()
+
 
 final_solution = main(initial_population, [], 1)
 
@@ -259,6 +268,7 @@ plt.style.use("ggplot")
 for front, c in zip(final_solution_fronts, colors):
     score_1_list = []
     score_2_list = []
+    front = sorted(front, key=lambda chromosome: chromosome.get_fitness_score()[0])
     for chromosome in front:
         score_1_list.append(chromosome.get_fitness_score()[0])
         score_2_list.append(chromosome.get_fitness_score()[1])
