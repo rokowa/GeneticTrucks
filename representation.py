@@ -26,16 +26,18 @@ def plotArcs(x,y,ax) :
 			ax.plot([x[i],x[j]],[y[i],y[j]],color="black")
 
 def plotCities(x,y,nbH,ax) :
-	factor = 50
+	factor = 70
 	for i in range(len(x)) :
 		#aire proportionelle nb habitants
 		#-> rayon proportionel sqrt(nb_h)
 		color = "yellow" if i == Data.BN_IDX else "white"
 		radius = 10000 if i == Data.BN_IDX else factor*np.sqrt(nbH[i])
 		circle = plt.Circle((x[i],y[i]),radius,color=color,fill=True,zorder=1)
+		circle2 = plt.Circle((x[i],y[i]),radius,color="black",fill=False,zorder=2,linewidth=1)
 		#~ circle.set_in_layout(True)
 		#~ circle.set_zorder(1)
 		ax.add_patch(circle)
+		ax.add_patch(circle2)
 
 def plotPath(x, y, path, color, ax) :
 	

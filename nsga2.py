@@ -73,7 +73,7 @@ import pickle
 # Parameters of the algorithm
 INITIAL_POP = 50
 MAX_SOLUTIONS = 100
-NBR_ITERATIONS = 10
+NBR_ITERATIONS = 50
 MUTATION_CHANCE = 0.15
 
 X_SCALE_QUOTA = 1.0
@@ -88,8 +88,8 @@ iterations_solutions = []
 
 
 def main(p, q, iteration):
+    global iterations_solutions
     solutions = p + q
-    iterations_solutions.append(solutions)
     if iteration > NBR_ITERATIONS:
         return p + q
     else:
@@ -105,6 +105,7 @@ def main(p, q, iteration):
         F[i] = sorted(F[i], key=lambda x: x.get_fitness_score())
         pplus += F[i][0:(MAX_SOLUTIONS - len(pplus))]
         qplus = make_new_pop(pplus)
+        iterations_solutions += qplus
         return main(pplus, qplus, iteration+1)
 
 
@@ -127,31 +128,19 @@ def make_new_pop(pplus):
 
     new_chromosomes = []
     
-    while(len(new_chromosomes) < 10) :
+    while(len(new_chromosomes) < MAX_SOLUTIONS) :
         couple = random.sample(temp_pplus, 2)
-        for c in couple[0].cross(couple[1]) :
-            if(random.random() < MUTATION_CHANCE) :
-                c.mutate()
-            chromosome.init_fitness_score()
-            if(c.is_valid()) :
-                print("Valid chromosom")
-                new_chromosomes.append(c)
-        
-    #~ for i in range(int(len(temp_pplus) / 2)):
-        #~ couple = random.sample(temp_pplus, 2)
-        #~ couple_list.append(couple)
-        #~ temp_pplus.remove(couple[0])
-        #~ temp_pplus.remove(couple[1])
-    #~ for couple in couple_list:
-        #~ (a, b) = couple[0].cross(couple[1])
-        #~ new_chromosomes.append(a)
-        #~ new_chromosomes.append(b)
-    #~ for chromosome in new_chromosomes:
-        #~ if random.random() < MUTATION_CHANCE:
-            #~ chromosome.mutate()
-        #~ chromosome.init_fitness_score()
-        #~ if not chromosome.is_valid():
-            #~ new_chromosomes.remove(chromosome)
+        c = couple[0].cross2(couple[1])
+        if(random.random() < MUTATION_CHANCE) :
+            c.mutate()
+        c.init_fitness_score()
+        if(c.is_valid()) :
+            #~ print("Valid chromosom")
+            new_chromosomes.append(c)
+        else :
+            #~ print("Invalid chromosom")
+            pass
+
     return new_chromosomes
 
 
@@ -161,7 +150,6 @@ def dominate(s1, s2):
     score2 = s2.get_fitness_score()
     return False if (score1[0] > score2[0] or score1[1] > score2[1] or
                      (score1[0] == score2[0] and score1[1] == score2[1])) else True
-
 
 def fast_non_dominated_sort(pop):
     """ Sorts the population, the best ones are the less dominated ones"""
@@ -185,25 +173,16 @@ def fast_non_dominated_sort(pop):
             fronts[0].append(chromosome)
 
     i = 0
-    # Not sure about this one
-    while i < len(fronts):
-        if not fronts[i]:
-            break
-        temp = []
-        # For each chromosome in front i
-        for chromosome in fronts[i]:
-            # For each chromosome dominated by the chromosome we have on iteration
-            for chromosome2 in dominated[chromosome]:
+    while len(fronts[i]) > 0 :
+        Q = []
+        for chromosome in fronts[i] :
+            for chromosome2 in dominated[chromosome] :
                 domination_count[chromosome2] -= 1
-                if domination_count[chromosome2] == 0:
-                    ranks[chromosome2] += 1
-                    temp.append(chromosome2)
+                if(domination_count[chromosome2] == 0) :
+                    ranks[chromosome2] = i + 1
+                    Q.append(chromosome2)
         i += 1
-        if temp:
-            if i < len(fronts):
-                fronts[i] += temp
-            else:
-                fronts.append(temp)
+        fronts.append(Q)
 
     return fronts
 
@@ -265,31 +244,41 @@ initial_population = dataloader.get_initial_pop("initial_pop.txt")
 for chromosome in initial_population:
     chromosome.show()
 
-
+iterations_solutions += initial_population
 final_solution = main(initial_population, [], 1)
 
 # We sort our final solutions
 final_solution_fronts = fast_non_dominated_sort(final_solution)
 
-#~ saved_sol = open("saved_sol.bin", "wb")
-#~ pickle.dump(final_solution_fronts,saved_sol)
-#~ saved_sol.close()
+# We sort all solutions
+#~ iterations_solutions_fronts = fast_non_dominated_sort(iterations_solutions)
+
+saved_sol = open("saved_sol.bin", "wb")
+pickle.dump(final_solution_fronts,saved_sol)
+saved_sol.close()
 
 
 colors = cm.rainbow(np.linspace(0, 1, len(final_solution_fronts)))
+#~ colors = cm.rainbow(np.linspace(0, 1, len(iterations_solutions_fronts)))
 
 # Sets the style of our plot
 plt.style.use("ggplot")
 
-# Puts the fronts with a different color in our graph
+#~ # Puts the fronts with a different color in our graph
 for front, c in zip(final_solution_fronts, colors):
     score_1_list = []
     score_2_list = []
-    front = sorted(front, key=lambda chromosome: chromosome.get_fitness_score()[0])
+    #~ front = sorted(front, key=lambda chromosome: chromosome.get_fitness_score()[0])
     for chromosome in front:
         score_1_list.append(chromosome.get_fitness_score()[0])
         score_2_list.append(chromosome.get_fitness_score()[1])
+    #~ print(score_1_list)
+    #~ print(score_2_list)
     plt.plot(score_1_list, score_2_list, '-o', color=c)
+
+#~ for c in iterations_solutions_fronts[0] :
+    #~ print("{} {} {} {} {}".format(c.get_fitness_score()[0],c.get_fitness_score()[1], c.path0,c.path1,c.path2))
+
 
 """
 for i in range(len(score_1_list)):

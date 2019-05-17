@@ -114,6 +114,7 @@ class DataLoader:
                 print(city)
                 temp_chromosome.add_city(int(city), truck_index)
             truck_index += 1
+            temp_chromosome.init_fitness_score()
         return population
 
 class Chromosome:
@@ -399,6 +400,29 @@ class Chromosome:
         child_right.fill_holes(chromosome)
 
         return [child_left, child_right]
+    
+    def cross2(self, chromosome) :
+        most_populated = [0,3,12]
+        half_total_money = (sum(self.data.nb_peoples)*0.7)/2
+        
+        offspring = Chromosome(self.data)
+        
+        new_paths = [offspring.path0,offspring.path1,offspring.path2]
+        paths1 = [self.path0, self.path1, self.path2]
+        paths2 = [chromosome.path0, chromosome.path1, chromosome.path2]
+        
+        for k in range(3) :
+            for i,c in enumerate(paths1[k]) :
+                if(random.random() < 0.5) :
+                    new_paths[k][i] = c
+
+            for i,c in enumerate(paths2[k]) :
+                if(c not in new_paths[k]) :
+                    empty_idx = new_paths[k].index(-1)
+                    new_paths[k][empty_idx] = c
+        
+        return offspring
+            
 
     def show(self):
         print("\nfourgon 0: ")
