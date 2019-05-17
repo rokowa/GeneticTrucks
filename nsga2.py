@@ -68,6 +68,8 @@ import random
 import numpy as np
 import matplotlib.cm as cm
 
+import pickle
+
 # Parameters of the algorithm
 INITIAL_POP = 50
 MAX_SOLUTIONS = 100
@@ -257,6 +259,10 @@ final_solution = main(initial_population, [], 1)
 
 # We sort our final solutions
 final_solution_fronts = fast_non_dominated_sort(final_solution)
+
+#~ saved_sol = open("saved_sol.bin", "wb")
+#~ pickle.dump(final_solution_fronts,saved_sol)
+#~ saved_sol.close()
 
 
 colors = cm.rainbow(np.linspace(0, 1, len(final_solution_fronts)))
