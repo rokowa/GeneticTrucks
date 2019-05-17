@@ -360,9 +360,19 @@ class Chromosome:
             return False
         if 0 in self.path2 and 3 in self.path2 and 12 in self.path2:
             return False
+        
+        non_visited = [x for x in range(1,20)]
+        for c in self.path0 + self.path1 + self.path2 :
+            if(c in non_visited) :
+                non_visited.remove(c)
+                if(len(non_visited) == 0) :
+                    break;
+        
+        if(len(non_visited) > 0) :
+            return False
+        
         # If everything is good
         return True
-
 
 
     # crossover

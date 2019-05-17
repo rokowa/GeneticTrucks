@@ -73,7 +73,7 @@ import pickle
 # Parameters of the algorithm
 INITIAL_POP = 50
 MAX_SOLUTIONS = 100
-NBR_ITERATIONS = 25
+NBR_ITERATIONS = 10
 MUTATION_CHANCE = 0.15
 
 X_SCALE_QUOTA = 1.0
@@ -126,21 +126,32 @@ def make_new_pop(pplus):
     couple_list = []
 
     new_chromosomes = []
-    for i in range(int(len(temp_pplus) / 2)):
+    
+    while(len(new_chromosomes) < 10) :
         couple = random.sample(temp_pplus, 2)
-        couple_list.append(couple)
-        temp_pplus.remove(couple[0])
-        temp_pplus.remove(couple[1])
-    for couple in couple_list:
-        (a, b) = couple[0].cross(couple[1])
-        new_chromosomes.append(a)
-        new_chromosomes.append(b)
-    for chromosome in new_chromosomes:
-        if random.random() < MUTATION_CHANCE:
-            chromosome.mutate()
-        chromosome.init_fitness_score()
-        if not chromosome.is_valid():
-            new_chromosomes.remove(chromosome)
+        for c in couple[0].cross(couple[1]) :
+            if(random.random() < MUTATION_CHANCE) :
+                c.mutate()
+            chromosome.init_fitness_score()
+            if(c.is_valid()) :
+                print("Valid chromosom")
+                new_chromosomes.append(c)
+        
+    #~ for i in range(int(len(temp_pplus) / 2)):
+        #~ couple = random.sample(temp_pplus, 2)
+        #~ couple_list.append(couple)
+        #~ temp_pplus.remove(couple[0])
+        #~ temp_pplus.remove(couple[1])
+    #~ for couple in couple_list:
+        #~ (a, b) = couple[0].cross(couple[1])
+        #~ new_chromosomes.append(a)
+        #~ new_chromosomes.append(b)
+    #~ for chromosome in new_chromosomes:
+        #~ if random.random() < MUTATION_CHANCE:
+            #~ chromosome.mutate()
+        #~ chromosome.init_fitness_score()
+        #~ if not chromosome.is_valid():
+            #~ new_chromosomes.remove(chromosome)
     return new_chromosomes
 
 
