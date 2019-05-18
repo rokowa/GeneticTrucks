@@ -73,8 +73,8 @@ import pickle
 # Parameters of the algorithm
 INITIAL_POP = 50
 MAX_SOLUTIONS = 100
-NBR_ITERATIONS = 50
-MUTATION_CHANCE = 0.15
+NBR_ITERATIONS = 25
+MUTATION_CHANCE = 0.5
 
 X_SCALE_QUOTA = 1.0
 Y_SCALE_QUOTA = 1.0
@@ -86,6 +86,7 @@ best_chromosomes = []
 final_solution = []
 iterations_solutions = []
 
+population = []
 
 def main(p, q, iteration):
     global iterations_solutions
@@ -105,7 +106,7 @@ def main(p, q, iteration):
         F[i] = sorted(F[i], key=lambda x: x.get_fitness_score())
         pplus += F[i][0:(MAX_SOLUTIONS - len(pplus))]
         qplus = make_new_pop(pplus)
-        iterations_solutions += qplus
+        population.append(qplus)
         return main(pplus, qplus, iteration+1)
 
 
@@ -132,13 +133,11 @@ def make_new_pop(pplus):
         couple = random.sample(temp_pplus, 2)
         c = couple[0].cross2(couple[1])
         if(random.random() < MUTATION_CHANCE) :
-            c.mutate()
+            c.swap_mutation()
         c.init_fitness_score()
         if(c.is_valid()) :
-            #~ print("Valid chromosom")
             new_chromosomes.append(c)
         else :
-            #~ print("Invalid chromosom")
             pass
 
     return new_chromosomes
@@ -241,10 +240,11 @@ def initial_data_creator(nbrpopulation):
 
 # initial_population = initial_data_creator(INITIAL_POP)
 initial_population = dataloader.get_initial_pop("initial_pop.txt")
-for chromosome in initial_population:
-    chromosome.show()
+#~ for chromosome in initial_population:
+    #~ chromosome.show()
 
-iterations_solutions += initial_population
+population.append(initial_population)
+
 final_solution = main(initial_population, [], 1)
 
 # We sort our final solutions
@@ -264,7 +264,7 @@ colors = cm.rainbow(np.linspace(0, 1, len(final_solution_fronts)))
 # Sets the style of our plot
 plt.style.use("ggplot")
 
-#~ # Puts the fronts with a different color in our graph
+# Puts the fronts with a different color in our graph
 for front, c in zip(final_solution_fronts, colors):
     score_1_list = []
     score_2_list = []

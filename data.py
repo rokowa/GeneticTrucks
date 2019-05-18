@@ -32,7 +32,7 @@ class Data:
     SIZE = 20
     distances = [[0 for j in range(20)] for i in range(20)]
 
-
+    MOST_POPULATED = [ANDERLECHT_IDX,BXL_IDX,SCHAERBEEK_IDX]
     MONEY_PER_HABITANT = 0.7
 
     def __init__(self):
@@ -111,7 +111,7 @@ class DataLoader:
             l = l.replace('\n', '')
             cities = l.split(', ')
             for city in cities:
-                print(city)
+                #~ print(city)
                 temp_chromosome.add_city(int(city), truck_index)
             truck_index += 1
             temp_chromosome.init_fitness_score()
@@ -234,6 +234,34 @@ class Chromosome:
             self.path1[i+k], self.path1[j-k] = self.path1[j-k], self.path1[i+k]
             self.path2[i+k], self.path2[j-k] = self.path2[j-k], self.path2[i+k]
     
+    def swap_mutation(self) :
+        j = 0
+        k = 0
+        while(j >= k) :
+            j = random.randint(0,19)
+            k = random.randint(0,19)
+        
+        i = 0
+        
+        l_bak = 0
+        c_bak = 0
+        path_bak = None
+        for path in [self.path0, self.path1, self.path2] :
+            for l,c in enumerate(path) :
+                if(c != -1) :
+                    if(i == j) :
+                        l_bak = l
+                        c_bak = c
+                        path_bak = path
+                    elif(i == k) :
+                        path_bak[l_bak] = c
+                        path[l] = c_bak
+                        break;
+                    i += 1
+            if(i >= k) :
+                break;
+        
+        
     def generate_holes(self):
         count = 0
         res = []
@@ -355,11 +383,11 @@ class Chromosome:
             if truck > total_money * 0.5:
                 return False
         # If one truck goes on the 3 most populated cities
-        if 0 in self.path0 and 3 in self.path0 and 12 in self.path0:
+        if 8 in self.path0 and 3 in self.path0 and 12 in self.path0:
             return False
-        if 0 in self.path1 and 3 in self.path1 and 12 in self.path1:
+        if 8 in self.path1 and 3 in self.path1 and 12 in self.path1:
             return False
-        if 0 in self.path2 and 3 in self.path2 and 12 in self.path2:
+        if 8 in self.path2 and 3 in self.path2 and 12 in self.path2:
             return False
         
         non_visited = [x for x in range(1,20)]
@@ -402,7 +430,7 @@ class Chromosome:
         return [child_left, child_right]
     
     def cross2(self, chromosome) :
-        most_populated = [0,3,12]
+        most_populated = [8,3,12]
         half_total_money = (sum(self.data.nb_peoples)*0.7)/2
         
         offspring = Chromosome(self.data)
