@@ -433,23 +433,30 @@ class Chromosome:
         most_populated = [8,3,12]
         half_total_money = (sum(self.data.nb_peoples)*0.7)/2
         
-        offspring = Chromosome(self.data)
+        offspring1 = Chromosome(self.data)
+        offspring2 = Chromosome(self.data)
         
-        new_paths = [offspring.path0,offspring.path1,offspring.path2]
+        new_paths1 = [offspring1.path0,offspring1.path1,offspring1.path2]
+        new_paths2 = [offspring2.path0,offspring2.path1,offspring2.path2]
         paths1 = [self.path0, self.path1, self.path2]
         paths2 = [chromosome.path0, chromosome.path1, chromosome.path2]
         
         for k in range(3) :
             for i,c in enumerate(paths1[k]) :
                 if(random.random() < 0.5) :
-                    new_paths[k][i] = c
+                    new_paths1[k][i] = c
+                if(c not in new_paths2[k]) :
+                    empty_idx = new_paths2[k].index(-1)
+                    new_paths2[k][empty_idx] = c
 
             for i,c in enumerate(paths2[k]) :
-                if(c not in new_paths[k]) :
-                    empty_idx = new_paths[k].index(-1)
-                    new_paths[k][empty_idx] = c
+                if(random.random() < 0.5) :
+                    new_paths2[k][i] = c
+                if(c not in new_paths1[k]) :
+                    empty_idx = new_paths1[k].index(-1)
+                    new_paths1[k][empty_idx] = c
         
-        return offspring
+        return [offspring1, offspring2]
             
 
     def show(self):
@@ -465,27 +472,6 @@ class Chromosome:
         print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited2)))
         print('\npath:\t [%s]' % ', '.join(map(str, self.path2)))
 
-class Population:
-    INITIAL_SIZE = 100
-
-    def __init__(self):
-        self.chromosomes = []
-        # s'initialise selon l'algo NSGA-II
-        for i in range(100):
-            c = Chromosome()
-            # le point de départ des fourgons c'est la banque 
-            c.add_city(Data.BN_IDX, 0) 
-            c.add_city(Data.BN_IDX, 1) 
-            c.add_city(Data.BN_IDX, 2) 
-            # on remplit aléatoirement le reste
-            for i in range(1,Chromosome.SIZE):
-                # 3 fourgons
-                for j in range(3):
-                    #on ajoute une ville au fourgon j
-                    rdm_city = random.randint(-1, Chromosome.SIZE-1)
-                    c.add_city(rdm_city, j) 
-            self.chromosomes.append(c)
-    #TODO
     """ from stackoverflow:
     2) Chromosomes are sorted and put into fronts based on 
     Pareto Non dominated sets. Within a Pareto front, 

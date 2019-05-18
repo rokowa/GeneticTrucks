@@ -71,10 +71,10 @@ import matplotlib.cm as cm
 import pickle
 
 # Parameters of the algorithm
-INITIAL_POP = 50
+INITIAL_POP = 75
 MAX_SOLUTIONS = 100
-NBR_ITERATIONS = 25
-MUTATION_CHANCE = 0.5
+NBR_ITERATIONS = 50
+MUTATION_CHANCE = 0.10
 
 X_SCALE_QUOTA = 1.0
 Y_SCALE_QUOTA = 1.0
@@ -101,6 +101,8 @@ def main(p, q, iteration):
         i = 0
         while len(pplus) + get_safe_f_size(F, i) <= MAX_SOLUTIONS and F[i]:
             F[i] = crowding_distance_assignment(F[i])
+            # pas sur si c'est F[i] ou solutions que je dois mettre
+            #pplus.append(weighted_random_choice(solutions))
             pplus += F[i]
             i += 1
         F[i] = sorted(F[i], key=lambda x: x.get_fitness_score())
@@ -120,6 +122,18 @@ def get_safe_f_size(F, index):
         F.append([])
         return 0
 
+def weighted_random_choice(chromosomes):
+    max = 0
+    for c in chromosomes:
+        risk, dist = c.get_fitness_score()
+        max += risk*10**-6+dist # il faut voir comment on va pondérer ça après
+    pick = random.uniform(0, max)
+    current = 0
+    for c in chromosomes:
+        risk, dist = c.get_fitness_score()
+        current+=risk+dist
+        if current > pick : 
+            return c
 
 def make_new_pop(pplus):
     temp_pplus = pplus.copy()
@@ -130,13 +144,20 @@ def make_new_pop(pplus):
     new_chromosomes = []
     
     while(len(new_chromosomes) < MAX_SOLUTIONS) :
-        couple = random.sample(temp_pplus, 2)
-        c = couple[0].cross2(couple[1])
+        #couple = random.sample(temp_pplus, 2)
+        couple = (weighted_random_choice(pplus), weighted_random_choice(pplus))
+        c1, c2 = couple[0].cross2(couple[1])
         if(random.random() < MUTATION_CHANCE) :
-            c.swap_mutation()
-        c.init_fitness_score()
-        if(c.is_valid()) :
-            new_chromosomes.append(c)
+            c1.swap_mutation()
+            c2.swap_mutation()
+        c1.init_fitness_score()
+        c2.init_fitness_score()
+        if(c1.is_valid()) :
+            #~ print("Valid chromosom")
+            new_chromosomes.append(c1)
+        if(c2.is_valid()) :
+            #~ print("Valid chromosom")
+            new_chromosomes.append(c2)
         else :
             pass
 
