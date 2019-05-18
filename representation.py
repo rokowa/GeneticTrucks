@@ -1,3 +1,12 @@
+"""
+    Authors: COUCHARD Darius, KOWALKSI Robin, DIANGALA Jonathan
+
+    This is an additional feature for our project and is not used by our nsga2 algorithm's implementation
+
+    Geographically represents the solution of the first front of the last Algorithm run (from "nsga2.py")
+    Loads the saved_sol.bin file and represents the stored solution in it
+"""
+
 from data import DataLoader, Data
 import matplotlib.pyplot as plt
 import numpy as np
@@ -141,4 +150,3 @@ plotChromosom(sol[0][1],x,y,ax)
 #plt.savefig(SAVE_FILE, frameon=False, bbox_inches="tight", pad_inches=0)
 
 plt.show()
-

@@ -1,80 +1,26 @@
 """
+    Authors: COUCHARD Darius, KOWALKSI Robin, DIANGALA Jonathan
 
-fast_nondominated_sort(P)
--------------------------
-for each p in P                                         P : ensemble des solutions
-    S_p = vide
-    n_p = 0
-    for each q in P
-        if(p dominate q) :
-            S_p = S_p union {q}
-        else if(q dominate p) :
-            n_p = n_p + 1
-    if n_p = 0 :
-        p_rank = 1
-        F_1 = F_1 union {p}
-i = 0
-while F_i != vide :
-    Q = vide
-    for each p in F_i :
-        for each q in S_p
-            n_q = n_q - 1
-            if n_q == 0 :
-                q_rank = i + 1
-                Q = Q union {q}
-    i = i + 1
-    F_i = Q
+    Python implementation of NSGA2 Algorithm for the Brussels Transportation problem.
+    This Algorithm is directly based on the original NSGA2 Paper: https://www.iitk.ac.in/kangal/Deb_NSGA-II.pdf
 
-"dominate" ICI -> cette solution est meilleure ou égale cad (dans le cas d'une minimisation)
-que chaque fonction objectif est égale ou inférieure
-autrement dit : p domine q si il existe un objectif pour lequel p est meilleure sans dégrader les autres objectifs
-
-
-crowding_distance_assignment(I)                         I : ensemble des solutions
--------------------------------
-l = |I|                                                 l = nombre de solution
-for each i, set I[i]_distance = 0                       init distance
-for each objective m
-    I = sort(I,m)                                       sort using objective value
-    I[1]_distance = I[l]_distance = inf                 boundary point selected (why both ??)
-    for i = 2 to (l-1)
-        I[i]_distance = I[i]_distance + (I[i+1] - I[I-1])/(m_max_value-m_min_value)
-
-
-domination operator
--------------------
-dans la main loop !! (pas le même que plus haut)
-i domine j si (rang i > rang j) ou ((rang i = rang j) et (distance i > distance j))
-
-
-main loop
----------
-R_t = P_t union Q_t
-F = fast_nondominated_sort(R_t)                         F = [F_1, ...] tous les fronts
-P_t+1 = vide and i = 1
-until |P_t+1| + |F_i| <= N
-    crowding_distance_assignment(F_i)
-    P_t+1 = P_t+1 union F_i
-    i = i + 1
-sort(F_i, dominate)
-P_t+1 = P_t+1 union F_i[1:(N-|P_t+1|)]
-Q_t+1 = make_new_pop(P_t+1)                             "usual" selection, crossover and mutation (???)
-t = t+1
+    Various Data, Data structures and Data tools are from the file data.py
 """
 
-from data import DataLoader, Data, Chromosome
+
+from data import DataLoader, Chromosome
 import matplotlib.pyplot as plt
 import random
 import numpy as np
 import matplotlib.cm as cm
-
 import pickle
 
-# Parameters of the algorithm
-INITIAL_POP = 75
+
+# NSGA2 Algorithm Parameters
+INITIAL_POP = 25
 MAX_SOLUTIONS = 100
 NBR_ITERATIONS = 50
-MUTATION_CHANCE = 0.10
+MUTATION_CHANCE = 0.1
 
 X_SCALE_QUOTA = 1.0
 Y_SCALE_QUOTA = 1.0
@@ -88,7 +34,10 @@ iterations_solutions = []
 
 population = []
 
+
 def main(p, q, iteration):
+    """ Recursive function, it will stop when the parameter NBR_ITERATIONS is reached.
+        This the main loop explained in the report """
     global iterations_solutions
     solutions = p + q
     if iteration > NBR_ITERATIONS:
@@ -101,8 +50,6 @@ def main(p, q, iteration):
         i = 0
         while len(pplus) + get_safe_f_size(F, i) <= MAX_SOLUTIONS and F[i]:
             F[i] = crowding_distance_assignment(F[i])
-            # pas sur si c'est F[i] ou solutions que je dois mettre
-            #pplus.append(weighted_random_choice(solutions))
             pplus += F[i]
             i += 1
         F[i] = sorted(F[i], key=lambda x: x.get_fitness_score())
@@ -114,7 +61,7 @@ def main(p, q, iteration):
 
 def get_safe_f_size(F, index):
     """ This is a solution simple trick for out problem in the while loop of main function
-        If we are crossing the end of the list, we add a final empty front to F, the while
+        If we going out of the bounds of the list, we add a final empty front to F, the while
         loop will stop (check the second condition of the while loop) """
     if index < len(F):
         return len(F[index])
@@ -122,57 +69,59 @@ def get_safe_f_size(F, index):
         F.append([])
         return 0
 
+
 def weighted_random_choice(chromosomes):
+    """ Randomly picks a chromosome, the chromosome with the best fitness score are the most
+        likely to be chosen """
     max = 0
     for c in chromosomes:
         risk, dist = c.get_fitness_score()
-        max += risk*10**-6+dist # il faut voir comment on va pondérer ça après
+        max += risk*10**-6+dist
     pick = random.uniform(0, max)
     current = 0
     for c in chromosomes:
         risk, dist = c.get_fitness_score()
-        current+=risk+dist
-        if current > pick : 
+        current += risk+dist
+        if current > pick:
             return c
 
-def make_new_pop(pplus):
-    temp_pplus = pplus.copy()
-    # Picks two random elements from a list, until there is 1 or 0 elements remaining
-    # Couples are stored in couple_list
-    couple_list = []
 
+def make_new_pop(pplus):
+    """ Creates a new population set by crossing random selected chromosomes (selected by weighted_random_choice() )
+        The chromosomes can be swap mutated, the chance is one of the algorithm parameters"""
     new_chromosomes = []
     
-    while(len(new_chromosomes) < MAX_SOLUTIONS) :
-        #couple = random.sample(temp_pplus, 2)
+    while len(new_chromosomes) < MAX_SOLUTIONS:
         couple = (weighted_random_choice(pplus), weighted_random_choice(pplus))
         c1, c2 = couple[0].cross2(couple[1])
-        if(random.random() < MUTATION_CHANCE) :
+        if random.random() < MUTATION_CHANCE:
             c1.swap_mutation()
             c2.swap_mutation()
         c1.init_fitness_score()
         c2.init_fitness_score()
-        if(c1.is_valid()) :
-            #~ print("Valid chromosom")
+        if c1.is_valid():
             new_chromosomes.append(c1)
-        if(c2.is_valid()) :
-            #~ print("Valid chromosom")
+        if c2.is_valid():
             new_chromosomes.append(c2)
-        else :
+        else:
             pass
-
+    print("New generated chromosomes: "+str(len(new_chromosomes)))
     return new_chromosomes
 
 
 def dominate(s1, s2):
-    """ Calculates if S1 dominates S2"""
+    """ Returns true if S1 dominates S2. S1 dominates S2 if S1 is better
+    (it our case lower) in the two fitness functions """
     score1 = s1.get_fitness_score()
     score2 = s2.get_fitness_score()
     return False if (score1[0] > score2[0] or score1[1] > score2[1] or
                      (score1[0] == score2[0] and score1[1] == score2[1])) else True
 
+
 def fast_non_dominated_sort(pop):
-    """ Sorts the population, the best ones are the less dominated ones"""
+    """ Sorts the population, the best ones are the less dominated ones
+        Returns a list of fronts, each front is a list of chromosomes the first front
+        is the non-dominated front"""
     ranks = {}  # Dictionary containing key: chromosome, value: it's rank value
     dominated = {}  # Dictionary containing key: chromosome, value: chromosomes dominated by the chromosome
     domination_count = {}  # Dictionary containing key: chromosome, value: number of chromosomes that dominate the key
@@ -193,12 +142,12 @@ def fast_non_dominated_sort(pop):
             fronts[0].append(chromosome)
 
     i = 0
-    while len(fronts[i]) > 0 :
+    while len(fronts[i]) > 0:
         Q = []
-        for chromosome in fronts[i] :
-            for chromosome2 in dominated[chromosome] :
+        for chromosome in fronts[i]:
+            for chromosome2 in dominated[chromosome]:
                 domination_count[chromosome2] -= 1
-                if(domination_count[chromosome2] == 0) :
+                if domination_count[chromosome2] == 0:
                     ranks[chromosome2] = i + 1
                     Q.append(chromosome2)
         i += 1
@@ -214,7 +163,7 @@ def crowding_distance_assignment(pop_set):
     solution_nmbr = len(pop_set)
     distance = [0.0] * len(pop_set)  # List of float distance, the chromosomes are identified by index in this case
     for m in range(2):  # We iterate over the two chromosome fitness function values
-        pop_set = sorted(pop_set, key=lambda x: x.get_fitness_score()[m])  # we sort our pop_set by the m objective value
+        pop_set = sorted(pop_set, key=lambda x: x.get_fitness_score()[m])  # we sort our pop_set by the objective value
         max_value = pop_set[0].get_fitness_score()[m]  # Max fitness score of the current m objective
         min_value = pop_set[-1].get_fitness_score()[m]  # Min fitness score of the current m objective
         if (max_value == 0 and min_value == 0) or (max_value == min_value):  # Workaround, the max_value and the min_
@@ -238,6 +187,8 @@ def crowding_distance_assignment(pop_set):
 
 
 def initial_data_creator(nbrpopulation):
+    """ Randomly creates a initial population, the number of the generated chromosomes is nbrpopulation
+        and each chromosome verifies our constraints"""
     initial_pop = []
     cities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
@@ -259,10 +210,10 @@ def initial_data_creator(nbrpopulation):
     return initial_pop
 
 
+# Creates an iniital population, runs the algorithm and shows the fronts of the final solutions with matplotlib
+
 # initial_population = initial_data_creator(INITIAL_POP)
 initial_population = dataloader.get_initial_pop("initial_pop.txt")
-#~ for chromosome in initial_population:
-    #~ chromosome.show()
 
 population.append(initial_population)
 
@@ -271,63 +222,28 @@ final_solution = main(initial_population, [], 1)
 # We sort our final solutions
 final_solution_fronts = fast_non_dominated_sort(final_solution)
 
-# We sort all solutions
-#~ iterations_solutions_fronts = fast_non_dominated_sort(iterations_solutions)
-
+# We save our final solutions in a binary file.
+# This will be used for another graph generator in the representation.py file.
 saved_sol = open("saved_sol.bin", "wb")
-pickle.dump(final_solution_fronts,saved_sol)
+pickle.dump(final_solution_fronts, saved_sol)
 saved_sol.close()
-
-
-colors = cm.rainbow(np.linspace(0, 1, len(final_solution_fronts)))
-#~ colors = cm.rainbow(np.linspace(0, 1, len(iterations_solutions_fronts)))
 
 # Sets the style of our plot
 plt.style.use("ggplot")
 
 # Puts the fronts with a different color in our graph
+colors = cm.rainbow(np.linspace(0, 1, len(final_solution_fronts)))
 for front, c in zip(final_solution_fronts, colors):
     score_1_list = []
     score_2_list = []
-    #~ front = sorted(front, key=lambda chromosome: chromosome.get_fitness_score()[0])
+    # Sorts the results in each front so the front lines in the graph doesn't cross
+    front = sorted(front, key=lambda chromosome: chromosome.get_fitness_score()[0])
     for chromosome in front:
         score_1_list.append(chromosome.get_fitness_score()[0])
         score_2_list.append(chromosome.get_fitness_score()[1])
-    #~ print(score_1_list)
-    #~ print(score_2_list)
     plt.plot(score_1_list, score_2_list, '-o', color=c)
 
-#~ for c in iterations_solutions_fronts[0] :
-    #~ print("{} {} {} {} {}".format(c.get_fitness_score()[0],c.get_fitness_score()[1], c.path0,c.path1,c.path2))
-
-
-"""
-for i in range(len(score_1_list)):
-    score_1_list[i] = score_1_list[i] * X_SCALE_QUOTA
-
-for j in range(len(score_2_list)):
-    score_2_list[j] = score_2_list[j] * Y_SCALE_QUOTA
-"""
-
-# fig = plt.scatter(score_1_list, score_2_list, s=8)
-
-# Axes labels
+# Sets axes labels
 plt.xlabel("Distance")
 plt.ylabel("Risk")
 plt.show()
-
-"""
-TODO:
-
-1) Plotter les solutions finales avec des couleurs différentes en fonction des fronts
-2) Définir une population initiale fixe pour comparer plus facilement nos changement de paramètres initiaux
-
-Brainstorming pour le rapport (qu'es-ce qu'on dire sur le rapport ?)
-1) Citer les avantages du NSGA2 du papier orinal
-2) Expliquer pourquoi un algorithme générique
-3) Modélisation de nos data structures (expliquer croisement, mutation)
-4) Faut-il expliquer l'algorithme en lui même ?
-5) Jouer avec les paramètres
-6) Comment applique les contraintes du problème? Faire les deux
-7) 
-"""
