@@ -455,47 +455,44 @@ class Chromosome:
 
         return [child_left, child_right]
     
-    def cross2(self, chromosome):
+    def ipx_cross(self, chromosome_origin):
         """ Crossing method found in this paper, it is more adapted for transportation
             problems as we are facing here:
             https://www.researchgate.net/publication/301567660_Analyzing_the_Performance_of_Mutation_Operators_to_solve_
             the_Fixed_Charge_Transportation_Problem?fbclid=IwAR0229rxXYjT5xOed8fL4_7Ngbpzsx1EuXwu_IxT1tIRxhvZKbjKoBZB4o4
         """
-        offspring1 = Chromosome(self.data)
-        offspring2 = Chromosome(self.data)
-        
-        new_paths1 = [offspring1.path0, offspring1.path1, offspring1.path2]
-        new_paths2 = [offspring2.path0, offspring2.path1, offspring2.path2]
+        offspring = Chromosome(self.data)
+        chromosome = copy.deepcopy(chromosome_origin)
+
+        new_paths = [offspring.path0, offspring.path1, offspring.path2]
         paths1 = [self.path0, self.path1, self.path2]
         paths2 = [chromosome.path0, chromosome.path1, chromosome.path2]
-        
+        unused = []
+
+
         for k in range(3):
+            unused.append([])
             for i, c in enumerate(paths1[k]):
                 if random.random() < 0.5:
-                    new_paths1[k][i] = c
-                if c not in new_paths2[k]:
-                    empty_idx = new_paths2[k].index(-1)
-                    new_paths2[k][empty_idx] = c
+                    new_paths[k][i] = c
+                    for j in range(len(paths2)):
+                        if c in paths2[j]:
+                            paths2[j].remove(c)
+                else:
+                    unused[k].append(i)
 
-            for i, c in enumerate(paths2[k]):
-                if random.random() < 0.5:
-                    new_paths2[k][i] = c
-                if c not in new_paths1[k]:
-                    empty_idx = new_paths1[k].index(-1)
-                    new_paths1[k][empty_idx] = c
+        for k in range(3):
+            for i, c in enumerate(reversed(paths2[2-k])):
+                if c != -1:
+                    if i < len(unused[k]):
+                        new_paths[k][unused[k][i]] = c
+                    else:
+                        new_paths[k][new_paths[k].index(-1)] = c
         
-        return [offspring1, offspring2]
+        return offspring
 
     def show(self):
         """ Prints the visited cities by each truck of the chromosome"""
-        print("\nfourgon 0: ")
-        print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited0)))
-        print('\npath:\t [%s]' % ', '.join(map(str, self.path0)))
-
-        print("\nfourgon 1: ")
-        print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited1)))
-        print('\npath:\t [%s]' % ', '.join(map(str, self.path1)))
-
-        print("\nfourgon 2: ")
-        print('\nvisited:\t [%s]' % ', '.join(map(str, self.visited2)))
-        print('\npath:\t [%s]' % ', '.join(map(str, self.path2)))
+        print("fourgon 0: {}".format(self.path0))
+        print("fourgon 1: {}".format(self.path1))
+        print("fourgon 2: {}".format(self.path2))
