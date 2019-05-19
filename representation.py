@@ -143,8 +143,11 @@ ax.set_ylim(min(y)-ymargin,max(y)+ymargin)
 #Plot cities
 plotCities(x,y,dataloader.data.nb_peoples, dataloader.data.names, ax)
 
-#Plot chromosom sol[no_front][no_sol]
-plotChromosom(sol[0][1],x,y,ax)
+#sort first front
+front = sorted(sol[0], key=lambda chromosome: chromosome.get_fitness_score()[0])
+
+#Plot chromosom
+plotChromosom(front[0],x,y,ax)
 
 #Save figure
 #plt.savefig(SAVE_FILE, frameon=False, bbox_inches="tight", pad_inches=0)
