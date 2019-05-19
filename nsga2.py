@@ -93,16 +93,12 @@ def make_new_pop(pplus):
     
     while len(new_chromosomes) < MAX_SOLUTIONS:
         couple = (weighted_random_choice(pplus), weighted_random_choice(pplus))
-        c1, c2 = couple[0].cross2(couple[1])
+        c = couple[0].ipx_cross(couple[1])
         if random.random() < MUTATION_CHANCE:
-            c1.swap_mutation()
-            c2.swap_mutation()
-        c1.init_fitness_score()
-        c2.init_fitness_score()
-        if c1.is_valid():
-            new_chromosomes.append(c1)
-        if c2.is_valid():
-            new_chromosomes.append(c2)
+            c.swap_mutation()
+        c.init_fitness_score()
+        if c.is_valid():
+            new_chromosomes.append(c)
         else:
             pass
     print("New generated chromosomes: "+str(len(new_chromosomes)))
@@ -224,9 +220,9 @@ final_solution_fronts = fast_non_dominated_sort(final_solution)
 
 # We save our final solutions in a binary file.
 # This will be used for another graph generator in the representation.py file.
-saved_sol = open("saved_sol.bin", "wb")
-pickle.dump(final_solution_fronts, saved_sol)
-saved_sol.close()
+# saved_sol = open("saved_sol.bin", "wb")
+# pickle.dump(final_solution_fronts, saved_sol)
+# saved_sol.close()
 
 # Sets the style of our plot
 plt.style.use("ggplot")
