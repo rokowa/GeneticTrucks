@@ -73,12 +73,14 @@ Then you can run the script:
 python nsga2.py
 ```
 
-To visualize the best solution according to distance stored in `saved_sol.bin` you can run:
+This will perform the algorithm.
+
+To visualize the best solution stored in `saved_sol.bin` you can run:
 ```bash
 python representation.py
 ```
 
-To vizualize the best solution according to risk, you can replace this line:
+This will show the paths that minimize the total distance. To see the path which minimize risk, you can replace this line:
 ```python
 #sort first front
 front = sorted(sol[0], key=lambda chromosome: chromosome.get_fitness_score()[0])
@@ -90,14 +92,13 @@ By this one:
 front = sorted(sol[0], key=lambda chromosome: chromosome.get_fitness_score()[1])
 ```
 
-Then run the script
+Then run the script.
 
 ## Credits
 
 My teammates :
 
-Marius Couchard (@GriffinBabe)
-Jonathan Diangana
+Marius Couchard ([@GriffinBabe](https://github.com/GriffinBabe)) and Jonathan Diangana
 
 ## License
 
