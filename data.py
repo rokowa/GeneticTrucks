@@ -1,7 +1,6 @@
 import random
 import numpy as np
 import copy
-import numpy as np
 
 """
     Authors: COUCHARD Darius, KOWALKSI Robin, DIANGALA Jonathan
